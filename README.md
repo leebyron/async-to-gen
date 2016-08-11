@@ -80,6 +80,11 @@ require('./some-module-with-async-functions')
 ```
 
 
+## Use in Build Systems:
+
+**Rollup**: [`rollup-plugin-async`](https://github.com/leebyron/rollup-plugin-async)
+
+
 ## Common Usage
 
 #### Mocha

@@ -26,7 +26,14 @@ var obj = {
 
 // async class method
 class Dog {
-  async woof() {
+  async  woof() {
+    await this.x
+  }
+}
+
+// static async class method
+class Cat {
+  static  async  miau() {
     await this.x
   }
 }

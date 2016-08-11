@@ -93,7 +93,11 @@ function leaveFunction(editor, node, ast) {
   ast.scope.pop();
   if (node.async) {
     ast.isEdited = true;
-    editor.remove(node.start, node.start + 6);
+    var idx = findTokenIndex(ast.tokens, node.start);
+    if (node.static) {
+      idx++;
+    }
+    editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
     editor.insertLeft(node.body.start + 1, 'return __async(function*(){');
     editor.insertRight(node.body.end - 1, node.referencesThis ? '}.bind(this))' : '})');
   }

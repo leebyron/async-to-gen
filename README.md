@@ -41,8 +41,12 @@ var asyncToGen = require('async-to-gen');
 var fs = require('fs');
 
 var input = fs.readFileSync('input.js', 'utf8');
-var output = asyncToGen(input);
+var output = asyncToGen(input).toString();
 fs.writeFileSync('output.js', output);
+
+// source maps!
+var map = asyncToGen(input).generateMap();
+fs.writeFileSync('output.js.map', output);
 ```
 
 

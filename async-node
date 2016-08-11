@@ -72,7 +72,7 @@ if (evalScript || printScript) {
 } else if (source && checkSource) {
   var code = fs.readFileSync(source, 'utf8');
   try {
-    asyncToGen(code);
+    asyncToGen(code).toString();
   } catch (error) {
     var lines = code.split(/\r\n?|\n|\u2028|\u2029/);
     process.stdout.write(source + ':' + error.loc.line + '\n');
@@ -105,7 +105,10 @@ if (evalScript || printScript) {
       var error;
       var result;
       try {
-        var runCode = asyncToGen(code, { fastSkip: false, includeHelper: false });
+        var runCode = asyncToGen(code, {
+          fastSkip: false,
+          includeHelper: false
+        }).toString();
         try {
           result = vm.runInThisContext(runCode, { filename: filename });
         } catch (runError) {

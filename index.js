@@ -2,8 +2,11 @@ var babylon = require('babylon');
 var MagicString = require('magic-string');
 
 /**
- * Given a string JavaScript source which contains async functions, return a string
- * which has transformed generators.
+ * Given a string JavaScript source which contains async functions, return a
+ * MagicString which has transformed generators.
+ *
+ * MagicString has two important functions that can be called: .toString() and
+ * .generateMap() which returns a source map.
  *
  * Options:
  *
@@ -34,7 +37,7 @@ module.exports = function asyncToGen(source, options) {
 
   visit(ast, editor, asyncToGenVisitor);
 
-  return editor.toString();
+  return editor;
 }
 
 /**

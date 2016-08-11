@@ -158,7 +158,7 @@ for (var i = 0; i < sources.length; i++) {
 
 function transformSource(content, filepath) {
   try {
-    return asyncToGen(content);
+    return asyncToGen(content).toString();
   } catch (error) {
     if (error.loc) {
       var line = error.loc.line - 1;

@@ -76,6 +76,60 @@ require('./some-module-with-async-functions')
 ```
 
 
+## Common Usage
+
+#### Mocha
+
+Writing tests in mocha? Async functions are super handy for testing any code
+using promises and already work out of the box! To enable async functions in
+mocha include the require hook when you run your tests:
+
+```bash
+mocha --require async-to-gen/register test.js
+```
+
+Then in your tests, use async functions in your `it` clauses:
+
+```js
+describe('My Promising Module', () => {
+
+  it('promises to give a value', async () => {
+    expect(await myFunction('input')).to.equal('output')
+  })
+
+})
+```
+
+#### Scripts
+
+Have interactive scripts that require lots of input from the user? Async
+functions make writing those much easier! Check out [interactive-script](https://github.com/leebyron/interactive-script).
+
+```bash
+npm install interactive-script
+```
+
+Then write your script:
+
+```js
+const interactive = require('interactive-script')
+interactive(async (say, ask) => {
+  say('What is your favorite number?')
+  let num;
+  do {
+    num = Math.ceil(Math.random() * 100)
+  } while (!(await ask(`Is it ${num}? `, 'yN')))
+  say(`Great, I think ${num} is a fine number.`)
+})
+```
+
+And run it with `async-node`:
+
+```bash
+async-node myScript.js
+```
+
+
 ## Dead-Simple Transforms
 
 When `async-to-gen` transforms async functions, it does not affect the location

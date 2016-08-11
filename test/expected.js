@@ -31,6 +31,13 @@ class Dog {
   }.bind(this))}
 }
 
+// static async class method
+class Cat {
+  static miau() {return __async(function*(){
+    yield this.x
+  }.bind(this))}
+}
+
 // arrow function referencing this within function
 function within1() {return __async(function*(){
   function within2() {return __async(function*(){

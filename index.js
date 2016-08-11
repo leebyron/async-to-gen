@@ -93,7 +93,13 @@ function leaveFunction(editor, node, ast) {
   ast.scope.pop();
   if (node.async) {
     ast.isEdited = true;
-    editor.remove(node.start, node.start + 6);
+
+    if (node.type == 'ClassMethod' && node.static) {
+      editor.remove(node.start + 6, node.start + 12);
+    } else {
+      editor.remove(node.start, node.start + 6);
+    }
+
     editor.insertLeft(node.body.start + 1, 'return __async(function*(){');
     editor.insertRight(node.body.end - 1, node.referencesThis ? '}.bind(this))' : '})');
   }

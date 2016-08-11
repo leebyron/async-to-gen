@@ -31,6 +31,13 @@ class Dog {
   }
 }
 
+// static async class method
+class Cat {
+  static async miau() {
+    await this.x
+  }
+}
+
 // arrow function referencing this within function
 async function within1() {
   async function within2() {

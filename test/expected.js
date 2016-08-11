@@ -38,4 +38,4 @@ function within1() {return __async(function*(){
   }.bind(this))}
 })}
 
-function __async(f){var g=f();return new Promise(function(s,j){c();function c(a,x){try{var r=g[x?'throw':'next'](a)}catch(e){return j(e)}if(r.done){s(r.value)}else{return Promise.resolve(r.value).then(c,function(e){return c(e,1)})}}})}
+function __async(a){var P=Promise,d=a();return new P((a,e)=>{var b=(f,g)=>{try{var c=d[g?"throw":"next"](f)}catch(h){return e(h)}if(c.done)a(c.value);else return P.resolve(c.value).then(b,a=>b(a,1))};b()})}

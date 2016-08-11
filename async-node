@@ -95,7 +95,7 @@ if (evalScript || printScript) {
 
 // Or begin a REPL.
 } else {
-  global.__async = __async;
+  global.__async = new Function('return ' + asyncToGen.asyncHelper)();
   repl.start({
     prompt: '> ',
     input: process.stdin,
@@ -117,27 +117,4 @@ if (evalScript || printScript) {
       callback(error, result);
     }
   });
-}
-
-function __async(fn) {
-  var gen = fn();
-  return new Promise(function (resolve, reject) {
-    step()
-    function step(arg, exception) {
-      try {
-        var result = gen[exception ? 'throw' : 'next'](arg)
-      } catch (error) {
-        return reject(error)
-      }
-      if (result.done) {
-        resolve(result.value)
-      } else {
-        return Promise.resolve(result.value).then(function (value) {
-          return step(value)
-        }, function (error) {
-          return step(error, true)
-        })
-      }
-    }
-  })
 }

@@ -37,7 +37,35 @@ module.exports = function asyncToGen(source, options) {
   return editor.toString();
 }
 
-var asyncHelper = "\nfunction __async(f){var g=f();return new Promise(function(s,j){c();function c(a,x){try{var r=g[x?'throw':'next'](a)}catch(e){return j(e)}if(r.done){s(r.value)}else{return Promise.resolve(r.value).then(c,function(e){return c(e,1)})}}})}\n";
+/**
+ * A helper function which accepts a generator function and returns a Promise
+ * based on invoking the generator and resolving yielded Promises.
+ *
+ * Automatically included at the end of files containing async functions,
+ * but also exported from this module for other uses. See ./async-node for an
+ * example of another usage.
+ */
+var asyncHelper =
+  'function __async(f){' +
+    'var g=f();' +
+    'return new Promise(function(s,j){' +
+      'function c(a,x){' +
+        'try{' +
+          'var r=g[x?"throw":"next"](a)' +
+        '}catch(e){' +
+          'return j(e)' +
+        '}' +
+        'return r.done?' +
+          's(r.value):' +
+          'Promise.resolve(r.value).then(c,d)' +
+      '}' +
+      'function d(e){' +
+        'return c(e,1)' +
+      '}' +
+      'c()' +
+    '})' +
+  '}';
+
 module.exports.asyncHelper = asyncHelper;
 
 // A collection of methods for each AST type names which contain async functions to
@@ -74,7 +102,7 @@ var asyncToGenVisitor = {
     },
     leave: function (editor, node, ast) {
       if (ast.isEdited && ast.shouldIncludeHelper) {
-        editor.insertRight(node.end, asyncHelper);
+        editor.insertRight(node.end, '\n' + asyncHelper + '\n');
       }
     }
   },

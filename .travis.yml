@@ -1,0 +1,10 @@
+language: node_js
+
+node_js:
+  - "6"
+  - "5"
+  - "4"
+  - "iojs"
+
+before_install:
+  - npm config set spin false --global

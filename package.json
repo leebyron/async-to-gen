@@ -1,0 +1,38 @@
+{
+  "name": "async-to-gen",
+  "version": "1.0.0",
+  "description": "Transform async functions to generator functions with speed and simplicity.",
+  "author": "Lee Byron <lee@leebyron.com> (http://leebyron.com/)",
+  "license": "BSD-3-Clause",
+  "main": "index.js",
+  "bin": {
+    "async-to-gen": "./async-to-gen",
+    "async-node": "./async-node"
+  },
+  "homepage": "https://github.com/leebyron/async-to-gen",
+  "bugs": {
+    "url": "https://github.com/leebyron/async-to-gen/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://github.com/leebyron/async-to-gen.git"
+  },
+  "scripts": {
+    "test": "DIFF=$(./async-to-gen test/source.js | diff test/expected.js -); if [ -n \"$DIFF\" ]; then echo \"$DIFF\"; exit 1; fi; RES=$(node -e 'require(\"./register\");require(\"./test/test-node-module.js\")'); if [ \"$RES\" != 42 ]; then echo 'Node register hook failed'; exit 1; fi; ASYNC_NODE=$(./async-node ./test/test-node-module.js); if [ \"$ASYNC_NODE\" != 42 ]; then echo 'async-node failed'; exit 1; fi;",
+    "test-update": "./async-to-gen test/source.js > test/expected.js"
+  },
+  "keywords": [
+    "async",
+    "await",
+    "async-await",
+    "generators",
+    "compiler",
+    "transpiler",
+    "transform",
+    "es7"
+  ],
+  "dependencies": {
+    "babylon": "^6.8.4",
+    "magic-string": "^0.15.2"
+  }
+}

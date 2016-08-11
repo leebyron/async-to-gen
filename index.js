@@ -34,7 +34,7 @@ module.exports = function asyncToGen(source, options) {
   });
 
   ast.shouldIncludeHelper = !(options && options.includeHelper === false);
-  ast.sourceMaps = options && options.sourceMaps === true;
+  var sourceMaps = options && options.sourceMaps === true;
 
   var editor = new MagicString(source);
 
@@ -108,13 +108,16 @@ var asyncToGenVisitor = {
     },
     leave: function (editor, node, ast) {
       if (ast.isEdited && ast.shouldIncludeHelper) {
-        editor.insertRight(node.end, '\n' + asyncHelper + '\n');
+        editor.append('\n' + asyncHelper + '\n');
       }
     }
   },
   ThisExpression: {
     enter: function (editor, node, ast) {
-      ast.scope[ast.scope.length - 1].referencesThis = true;
+      var envRecord = ast.scope[ast.scope.length - 1];
+      if (envRecord.async) {
+        envRecord.referencesThis = true;
+      }
     }
   }
 };

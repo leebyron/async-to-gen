@@ -10,7 +10,7 @@ var MagicString = require('magic-string');
  *
  * Options:
  *
- *   - sourceMaps: (default: false) collects data to produce correct sourcemaps.
+ *   - sourceMap: (default: false) collects data to produce a correct source map.
  *                 provide true if you plan on calling generateMap().
  *   - fastSkip: (default: true) returns the source directly if it doesn't find
  *               the word "async" in the source.
@@ -34,11 +34,11 @@ module.exports = function asyncToGen(source, options) {
   });
 
   ast.shouldIncludeHelper = !(options && options.includeHelper === false);
-  var sourceMaps = options && options.sourceMaps === true;
+  var sourceMap = options && options.sourceMap === true;
 
   var editor = new MagicString(source);
 
-  visit(ast, editor, asyncToGenVisitor, sourceMaps);
+  visit(ast, editor, asyncToGenVisitor, sourceMap);
 
   return editor;
 }
@@ -162,7 +162,7 @@ function leaveArrowFunction(editor, node, ast) {
 
 // Given the AST output of babylon parse, walk through in a depth-first order,
 // calling methods on the given visitor, providing editor as the first argument.
-function visit(ast, editor, visitor, sourceMaps) {
+function visit(ast, editor, visitor, sourceMap) {
   var stack;
   var parent;
   var keys = [];
@@ -184,7 +184,7 @@ function visit(ast, editor, visitor, sourceMaps) {
       var node = parent ? parent[keys[index]] : ast.program;
       if (node && typeof node === 'object') {
         if (node.type) {
-          if (sourceMaps) {
+          if (sourceMap) {
             editor.addSourcemapLocation(node.start);
             editor.addSourcemapLocation(node.end);
           }

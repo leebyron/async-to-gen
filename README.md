@@ -154,32 +154,3 @@ function foo() {return __async(function*(){
 
 function __async(f){/* small helper function */}
 ```
-
-## Known Limitations
-
-#### Referring to `super` in an async function.
-
-Unfortunately, the approach of replacing async functions with generator
-functions changes the [Environment Record](http://www.ecma-international.org/ecma-262/6.0/#sec-environment-records) in which the function is invoked, which
-breaks references to [`super`](http://www.ecma-international.org/ecma-262/6.0/#sec-super-keyword).
-
-For example, the following (otherwise correct) code will produce an error:
-
-```
-class Example {
-  async foo() {
-    return await 123
-  }
-}
-
-class BigExample extends Example {
-  async foo() {
-    return 10 * (await super.foo())
-  }
-}
-```
-
-This should only have a very limited impact since Node.js does not yet support
-using `super` as of writing (v6.3.1, based on v8 5.0). If you need to support
-this use case in your code, use [Babel](https://babeljs.io) with both the
-async-await and class transforms.

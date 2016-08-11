@@ -45,7 +45,7 @@ var output = asyncToGen(input).toString();
 fs.writeFileSync('output.js', output);
 
 // source maps!
-var map = asyncToGen(input).generateMap();
+var map = asyncToGen(input, { sourceMaps: true }).generateMap();
 fs.writeFileSync('output.js.map', output);
 ```
 

@@ -10,6 +10,8 @@ var MagicString = require('magic-string');
  *
  * Options:
  *
+ *   - sourceMaps: (default: false) collects data to produce correct sourcemaps.
+ *                 provide true if you plan on calling generateMap().
  *   - fastSkip: (default: true) returns the source directly if it doesn't find
  *               the word "async" in the source.
  *   - includeHelper: (default: true) includes the __async function in the file.
@@ -32,10 +34,11 @@ module.exports = function asyncToGen(source, options) {
   });
 
   ast.shouldIncludeHelper = !(options && options.includeHelper === false);
+  ast.sourceMaps = options && options.sourceMaps === true;
 
   var editor = new MagicString(source);
 
-  visit(ast, editor, asyncToGenVisitor);
+  visit(ast, editor, asyncToGenVisitor, sourceMaps);
 
   return editor;
 }
@@ -155,8 +158,8 @@ function leaveArrowFunction(editor, node, ast) {
 }
 
 // Given the AST output of babylon parse, walk through in a depth-first order,
-// calling methods on the given visitor, providing context as the first argument.
-function visit(ast, context, visitor) {
+// calling methods on the given visitor, providing editor as the first argument.
+function visit(ast, editor, visitor, sourceMaps) {
   var stack;
   var parent;
   var keys = [];
@@ -172,14 +175,18 @@ function visit(ast, context, visitor) {
       var node = parent ? parent[keys[index]] : ast.program;
       if (node.type) {
         var visitFn = visitor[node.type] && visitor[node.type].leave;
-        visitFn && visitFn(context, node, ast);
+        visitFn && visitFn(editor, node, ast);
       }
     } else {
       var node = parent ? parent[keys[index]] : ast.program;
       if (node && typeof node === 'object') {
         if (node.type) {
+          if (sourceMaps) {
+            editor.addSourcemapLocation(node.start);
+            editor.addSourcemapLocation(node.end);
+          }
           var visitFn = visitor[node.type] && visitor[node.type].enter;
-          if (visitFn && visitFn(context, node, ast) === false) {
+          if (visitFn && visitFn(editor, node, ast) === false) {
             continue;
           }
         }

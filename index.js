@@ -6,7 +6,8 @@ var MagicString = require('magic-string');
  * MagicString which has transformed generators.
  *
  * MagicString has two important functions that can be called: .toString() and
- * .generateMap() which returns a source map.
+ * .generateMap() which returns a source map, as well as a property .isEdited
+ * which is true when any async functions were transformed.
  *
  * Options:
  *
@@ -17,10 +18,13 @@ var MagicString = require('magic-string');
  *   - includeHelper: (default: true) includes the __async function in the file.
  */
 module.exports = function asyncToGen(source, options) {
+  var editor = new MagicString(source);
+  editor.isEdited = false;
+
   // Cheap trick for files that don't actually contain async functions
   if (!(options && options.fastSkip === false) &&
       source.indexOf('async ') === -1) {
-    return source;
+    return editor;
   }
 
   // Babylon is one of the sources of truth for async syntax. This parse
@@ -36,9 +40,11 @@ module.exports = function asyncToGen(source, options) {
   ast.shouldIncludeHelper = !(options && options.includeHelper === false);
   var sourceMap = options && options.sourceMap === true;
 
-  var editor = new MagicString(source);
-
   visit(ast, editor, asyncToGenVisitor, sourceMap);
+
+  if (ast.isEdited) {
+    editor.isEdited = true;
+  }
 
   return editor;
 }

@@ -2,8 +2,8 @@ var babylon = require('babylon');
 var MagicString = require('magic-string');
 
 /**
- * Given a string JavaScript source which contains Flow types, return a string
- * which has removed those types.
+ * Given a string JavaScript source which contains async functions, return a string
+ * which has transformed generators.
  *
  * Options:
  *
@@ -18,7 +18,7 @@ module.exports = function asyncToGen(source, options) {
     return source;
   }
 
-  // Babylon is one of the sources of truth for Flow syntax. This parse
+  // Babylon is one of the sources of truth for async syntax. This parse
   // configuration is intended to be as permissive as possible.
   var ast = babylon.parse(source, {
     allowImportExportEverywhere: true,
@@ -40,8 +40,8 @@ module.exports = function asyncToGen(source, options) {
 var asyncHelper = "\nfunction __async(f){var g=f();return new Promise(function(s,j){c();function c(a,x){try{var r=g[x?'throw':'next'](a)}catch(e){return j(e)}if(r.done){s(r.value)}else{return Promise.resolve(r.value).then(c,function(e){return c(e,1)})}}})}\n";
 module.exports.asyncHelper = asyncHelper;
 
-// A collection of methods for each AST type names which contain Flow types to
-// be removed.
+// A collection of methods for each AST type names which contain async functions to
+// be transformed.
 var asyncToGenVisitor = {
   AwaitExpression: {
     enter: function (editor, node) {

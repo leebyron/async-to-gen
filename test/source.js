@@ -87,3 +87,29 @@ async function within1() {
 async function within1() {
   () => async () => this
 }
+
+class SuperDuper extends BaseClass {
+  constructor(arg) {
+    super(arg)
+  }
+
+  async barAsync() {
+    const arg = super.arg()
+    super.arg = super.arg()
+
+    super /*a*/ . /*b*/ arg /*c*/ = /*d*/ super /*e*/ . /*f*/ arg /*g*/
+    super /*a*/ [ /*b*/ arg /*c*/ ] /*d*/ = /*e*/ super /*f*/ [ /*g*/ arg /*h*/ ] /*i*/
+
+    const arg = super['arg']
+    super['arg'] = arg
+    delete super.arg
+    return super[arg](arg)
+
+    delete super.arg
+    return super.barAsync(arg)
+  }
+
+  async bazAsync() {
+    super['arg'] = super['arg']
+  }
+}

@@ -88,4 +88,30 @@ function within1() {return __async(function*(){
   () => () =>__async(function*(){ return this}.call(this))
 }.call(this))}
 
+class SuperDuper extends BaseClass {
+  constructor(arg) {
+    super(arg)
+  }
+
+  barAsync() {return __async(function*($uper,$uperEq){
+    const arg = $uper("arg").call(this)
+    $uperEq("arg" , $uper("arg").call(this))
+
+    $uperEq( /*a*/  /*b*/ "arg" /*c*/ , /*d*/ $uper( /*e*/  /*f*/ "arg")) /*g*/
+    $uperEq( /*a*/  /*b*/ arg /*c*/  /*d*/ , /*e*/ $uper( /*f*/  /*g*/ arg /*h*/ )) /*i*/
+
+    const arg = $uper('arg')
+    $uperEq('arg' , arg)
+    delete super.arg
+    return $uper(arg).call(this,arg)
+
+    delete super.arg
+    return $uper("barAsync").call(this,arg)
+  }.call(this,p=>super[p],(p,v)=>(super[p]=v)))}
+
+  bazAsync() {return __async(function*($uper,$uperEq){
+    $uperEq('arg' , $uper('arg'))
+  }(p=>super[p],(p,v)=>(super[p]=v)))}
+}
+
 function __async(g){return new Promise(function(s,j){function c(a,x){try{var r=g[x?"throw":"next"](a)}catch(e){return j(e)}return r.done?s(r.value):Promise.resolve(r.value).then(c,d)}function d(e){return c(e,1)}c()})}

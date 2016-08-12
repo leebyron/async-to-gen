@@ -58,8 +58,7 @@ module.exports = function asyncToGen(source, options) {
  * example of another usage.
  */
 var asyncHelper =
-  'function __async(f){' +
-    'var g=f();' +
+  'function __async(g){' +
     'return new Promise(function(s,j){' +
       'function c(a,x){' +
         'try{' +
@@ -89,7 +88,7 @@ var asyncToGenVisitor = {
     }
   },
   ArrowFunctionExpression: {
-    enter: enterFunction,
+    enter: enterArrowFunction,
     leave: leaveArrowFunction
   },
   FunctionDeclaration: {
@@ -142,26 +141,32 @@ function leaveFunction(editor, node, ast) {
     }
     editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
     editor.insertLeft(node.body.start + 1, 'return __async(function*(){');
-    editor.insertRight(node.body.end - 1, node.referencesThis ? '}.bind(this))' : '})');
+    editor.insertRight(node.body.end - 1, node.referencesThis ? '}.call(this))' : '}())');
+  }
+}
+
+function enterArrowFunction(editor, node, ast) {
+  if (node.async) {
+    ast.scope.push(node);
   }
 }
 
 function leaveArrowFunction(editor, node, ast) {
-  ast.scope.pop();
-  if (node.referencesThis) {
-    ast.scope[ast.scope.length - 1].referencesThis = true;
-  }
   if (node.async) {
+    ast.scope.pop();
+    if (node.referencesThis) {
+      ast.scope[ast.scope.length - 1].referencesThis = true;
+    }
     ast.isEdited = true;
     editor.remove(node.start, node.start + 6);
     if (node.body.type === 'BlockStatement') {
       editor.overwrite(node.body.start, node.body.start + 1, '__async(function*(){');
-      editor.overwrite(node.body.end - 1, node.body.end, node.referencesThis ? '}.bind(this))' : '})');
+      editor.overwrite(node.body.end - 1, node.body.end, node.referencesThis ? '}.call(this))' : '}())');
     } else {
       var idx = findTokenIndex(ast.tokens, node.body.start);
       editor.insertRight(ast.tokens[idx - 1].end, '__async(function*(){');
       editor.insertLeft(node.body.start, 'return ');
-      editor.insertRight(node.body.end, node.referencesThis ? '}.bind(this))' : '})');
+      editor.insertRight(node.body.end, node.referencesThis ? '}.call(this))' : '}())');
     }
   }
 }

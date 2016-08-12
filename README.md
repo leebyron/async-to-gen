@@ -144,7 +144,7 @@ async-node myScript.js
 When `async-to-gen` transforms async functions, it does not affect the location
 of lines in a file, leading to easier to understand stack traces when debugging.
 
-It also includes a very small (227 byte) conversion function at the bottom of the file.
+It also includes a very small (217 byte) conversion function at the bottom of the file.
 
 **Before:**
 

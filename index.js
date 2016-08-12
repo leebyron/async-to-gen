@@ -57,28 +57,31 @@ module.exports = function asyncToGen(source, options) {
  * but also exported from this module for other uses. See ./async-node for an
  * example of another usage.
  */
-var asyncHelper =
-  'function __async(f){' +
-    'var g=f();' +
-    'return new Promise(function(s,j){' +
-      'function c(a,x){' +
-        'try{' +
-          'var r=g[x?"throw":"next"](a)' +
-        '}catch(e){' +
-          'return j(e)' +
-        '}' +
-        'return r.done?' +
-          's(r.value):' +
-          'Promise.resolve(r.value).then(c,d)' +
-      '}' +
-      'function d(e){' +
-        'return c(e,1)' +
-      '}' +
-      'c()' +
-    '})' +
-  '}';
+var asyncHelper = function __async(f){
+  var g=f();
+  return new Promise(function(s,j){
+    function c(a,x){
+      try{
+        var r=g[x?"throw":"next"](a)
+      }catch(e){
+        return j(e)
+      }
+      return r.done?
+        s(r.value):
+        Promise.resolve(r.value).then(c,d)
+    }
+    function d(e){
+      return c(e,1)
+    }
+    c()
+  })
+};
 
 module.exports.asyncHelper = asyncHelper;
+
+var asyncHelperString = asyncHelper.toString();
+// Remove leading spaces and newlines
+asyncHelperString = asyncHelperString.replace(/^ +|\n/gm, '');
 
 // A collection of methods for each AST type names which contain async functions to
 // be transformed.
@@ -114,7 +117,7 @@ var asyncToGenVisitor = {
     },
     leave: function (editor, node, ast) {
       if (ast.isEdited && ast.shouldIncludeHelper) {
-        editor.append('\n' + asyncHelper + '\n');
+        editor.append('\n' + asyncHelperString + '\n');
       }
     }
   },

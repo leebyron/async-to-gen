@@ -139,7 +139,7 @@ function leaveFunction(editor, node, ast) {
   if (node.async) {
     ast.isEdited = true;
     var idx = findTokenIndex(ast.tokens, node.start);
-    if (node.static) {
+    while (ast.tokens[idx].value !== 'async') {
       idx++;
     }
     editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
@@ -193,8 +193,11 @@ function leaveArrowFunction(editor, node, ast) {
       editor.overwrite(node.body.start, node.body.start + 1, '__async(function*(){');
       editor.overwrite(node.body.end - 1, node.body.end, node.referencesThis ? '}.call(this))' : '}())');
     } else {
-      var idx = findTokenIndex(ast.tokens, node.body.start);
-      editor.insertRight(ast.tokens[idx - 1].end, '__async(function*(){');
+      var idx = findTokenIndex(ast.tokens, node.body.start) - 1;
+      while (ast.tokens[idx].type.label !== '=>') {
+        idx--;
+      }
+      editor.insertRight(ast.tokens[idx].end, '__async(function*(){');
       editor.insertLeft(node.body.start, 'return ');
       editor.insertRight(node.body.end, node.referencesThis ? '}.call(this))' : '}())');
     }

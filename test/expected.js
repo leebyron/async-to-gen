@@ -54,6 +54,9 @@ function asyncThis() {return __async(function*(){
 var fn = () =>__async(function*(){
   return this}.call(this));
 
+var fn2 = /**/ /**/ ( /**/ ) /**/ =>__async(function*(){ /**/
+ /**/ return this}.call(this)) /**/ ;
+
 // async arrow function referencing this within async function
 function within1() {return __async(function*(){
   function within2() {return __async(function*(){

@@ -54,6 +54,9 @@ async function asyncThis() {
 var fn = async () =>
   this;
 
+var fn2 = /**/ async /**/ ( /**/ ) /**/ => /**/
+ /**/ this /**/ ;
+
 // async arrow function referencing this within async function
 async function within1() {
   async function within2() {

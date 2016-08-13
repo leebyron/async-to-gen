@@ -109,6 +109,26 @@ describe('My Promising Module', () => {
 })
 ```
 
+Testing your [express](http://expressjs.com/) app?
+Try [supertest-as-promised](https://github.com/WhoopInc/supertest-as-promised) and async functions:
+
+```js
+const express = require('express')
+const request = require('supertest-as-promised')
+
+const app = express()
+app.get('/foo', (req, res) => res.send('bar'))
+
+describe('My express app', () => {
+
+  it('loads foo', async () => {
+    const response = await request(app).get('/foo')
+    expect(response).to.equal('bar')
+  })
+
+})
+```
+
 #### Scripts
 
 Have interactive scripts that require lots of input from the user? Async

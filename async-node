@@ -14,6 +14,7 @@ var usage = 'Usage: async-node [options] [ script.js ] [arguments] \n' +
 
 '\nOptions:\n' +
 '  -h, --help            Show this message\n' +
+'  -v, --version         Print the current version of async-node\n' +
 '  -e, --eval script     Evaluate script\n' +
 '  -p, --print script    Evaluate script and print result\n' +
 '  -c, --check           Syntax check script without executing\n';
@@ -28,6 +29,9 @@ while (i < process.argv.length) {
   var arg = process.argv[i++];
   if (arg === '-h' || arg === '--help') {
     process.stdout.write(usage);
+    process.exit(0);
+  } else if (arg === '-v' || arg === '--version') {
+    process.stdout.write('v' + require('./package').version);
     process.exit(0);
   } else if (arg === '-e' || arg === '--eval') {
     evalScript = process.argv[i++];

@@ -2,7 +2,12 @@
 
 async function genAnswer() {
   try {
-    throw await 42;
+    throw await
+      true ?
+        await
+          42 :
+        await
+          99
   } catch (e) {
     return e;
   }

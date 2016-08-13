@@ -117,4 +117,48 @@ class SuperDuper extends BaseClass {
   }(p=>super[p],(p,v)=>(super[p]=v)))}
 }
 
+// await and yield parse differences
+function requireParens() {return __async(function*(){
+  (yield x) || y;
+  y && (yield x);
+  (yield x) + 1;
+  (yield x) << 5;
+  (yield x) | 0;
+  0 | (yield x);
+  (yield x) == 3;
+  4 !== (yield x);
+  (yield x) instanceof Foo;
+  (yield x) in (yield y);
+  typeof (yield x);
+  void (yield x);
+  delete (yield x);
+  !(yield x);
+  ~(yield x);
+  -(yield x);
+  +(yield x);
+  (yield x) ? y : z;
+}())}
+
+// await and yield parse similarities
+function noRequiredParens() {return __async(function*(){
+  yield x;
+  (yield x, yield x);
+  yield x++;
+  return yield x;
+  throw yield x;
+  if (yield x) return;
+  while (yield x) yield x;
+  do { yield x } while (yield x);
+  for (y in yield x) yield y;
+  for (y of yield x) yield y;
+  x ? yield y : yield z;
+  yield yield x;
+}())}
+
+// await on its own line
+function ownLine() {return __async(function*(){
+  yield(
+    someThing);
+}())}
+
 function __async(g){return new Promise(function(s,j){function c(a,x){try{var r=g[x?"throw":"next"](a)}catch(e){return j(e)}return r.done?s(r.value):Promise.resolve(r.value).then(c,d)}function d(e){return c(e,1)}c()})}

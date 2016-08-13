@@ -116,3 +116,47 @@ class SuperDuper extends BaseClass {
     super['arg'] = super['arg']
   }
 }
+
+// await and yield parse differences
+async function requireParens() {
+  await x || y;
+  y && await x;
+  await x + 1;
+  await x << 5;
+  await x | 0;
+  0 | await x;
+  await x == 3;
+  4 !== await x;
+  await x instanceof Foo;
+  await x in await y;
+  typeof await x;
+  void await x;
+  delete await x;
+  !await x;
+  ~await x;
+  -await x;
+  +await x;
+  await x ? y : z;
+}
+
+// await and yield parse similarities
+async function noRequiredParens() {
+  await x;
+  (await x, await x);
+  await x++;
+  return await x;
+  throw await x;
+  if (await x) return;
+  while (await x) await x;
+  do { await x } while (await x);
+  for (y in await x) await y;
+  for (y of await x) await y;
+  x ? await y : await z;
+  await await x;
+}
+
+// await on its own line
+async function ownLine() {
+  await
+    someThing;
+}

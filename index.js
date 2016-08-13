@@ -83,9 +83,7 @@ module.exports.asyncHelper = asyncHelper;
 // be transformed.
 var asyncToGenVisitor = {
   AwaitExpression: {
-    enter: function (editor, node) {
-      editor.overwrite(node.start, node.start + 5, 'yield');
-    }
+    leave: leaveAwait
   },
   ArrowFunctionExpression: {
     enter: enterArrowFunction,
@@ -129,6 +127,37 @@ var asyncToGenVisitor = {
     leave: leaveMemberExpression
   }
 };
+
+function leaveAwait(editor, node, ast, stack) {
+  var start;
+  var end;
+
+  // An YieldExpression can only exist where AssignmentExpression is
+  // allowed, otherwise it is wrapped in a ParenthesizedExpression.
+  var parentType = stack.parent.type;
+
+  if (parentType === 'LogicalExpression' ||
+      parentType === 'BinaryExpression' ||
+      parentType === 'UnaryExpression' ||
+      parentType === 'ConditionalExpression' && node === stack.parent.test) {
+    start = '(yield';
+    end = ')';
+  } else {
+    start = 'yield';
+    end = '';
+  }
+
+  // unlike await, yield must not be followed by a new line
+  if (node.loc.start.line !== node.argument.loc.start.line) {
+    start += '(';
+    end += ')';
+  }
+
+  editor.overwrite(node.start, node.start + 5, start);
+  if (end) {
+    editor.insertLeft(node.end, end);
+  }
+}
 
 function enterFunction(editor, node, ast) {
   ast.scope.push(node);

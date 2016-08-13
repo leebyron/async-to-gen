@@ -182,10 +182,12 @@ async-node myScript.js
 
 ## Dead-Simple Transforms
 
-When `async-to-gen` transforms async functions, it does not affect the location
-of lines in a file, leading to easier to understand stack traces when debugging.
+When `async-to-gen` transforms async functions, it makes as few edits as
+possible, and does not affect the location of lines in a file, leading to easier
+to understand stack traces when debugging.
 
-It also includes a very small (217 byte) conversion function at the bottom of the file.
+It also includes a very small (217 character) conversion function at the bottom
+of the file.
 
 **Before:**
 
@@ -200,7 +202,7 @@ async function foo() {
 ```js
 function foo() {return __async(function*(){
   return yield x
-})}
+}())}
 
-function __async(f){/* small helper function */}
+function __async(g){/* small helper function */}
 ```

@@ -124,6 +124,9 @@ var asyncToGenVisitor = {
         envRecord.referencesThis = true;
       }
     }
+  },
+  MemberExpression: {
+    leave: leaveMemberExpression
   }
 };
 
@@ -140,8 +143,29 @@ function leaveFunction(editor, node, ast) {
       idx++;
     }
     editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
-    editor.insertLeft(node.body.start + 1, 'return __async(function*(){');
-    editor.insertRight(node.body.end - 1, node.referencesThis ? '}.call(this))' : '}())');
+
+    var argNames = [];
+    var argValues = [];
+    if (node.referencesThis) {
+      argValues.push('this');
+    }
+    if (node.referencesSuper) {
+      argNames.push('$uper');
+      argValues.push('p=>super[p]');
+    }
+    if (node.referencesSuperEq) {
+      argNames.push('$uperEq');
+      argValues.push('(p,v)=>(super[p]=v)');
+    }
+
+    editor.insertLeft(
+      node.body.start + 1,
+      'return __async(function*(' + argNames.join(',') + '){'
+    );
+    editor.insertRight(
+      node.body.end - 1,
+      (node.referencesThis ? '}.call(' : '}(') + argValues.join(',') + '))'
+    );
   }
 }
 
@@ -157,6 +181,12 @@ function leaveArrowFunction(editor, node, ast) {
     if (node.referencesThis) {
       ast.scope[ast.scope.length - 1].referencesThis = true;
     }
+    if (node.referencesSuper) {
+      ast.scope[ast.scope.length - 1].referencesSuper = true;
+    }
+    if (node.referencesSuperEq) {
+      ast.scope[ast.scope.length - 1].referencesSuperEq = true;
+    }
     ast.isEdited = true;
     editor.remove(node.start, node.start + 6);
     if (node.body.type === 'BlockStatement') {
@@ -171,12 +201,66 @@ function leaveArrowFunction(editor, node, ast) {
   }
 }
 
+function leaveMemberExpression(editor, node, ast, stack) {
+  // Only transform super member expressions.
+  if (node.object.type !== 'Super') return;
+
+  // Only within transformed async function scopes.
+  var envRecord = ast.scope[ast.scope.length - 1];
+  if (!envRecord.async) return;
+
+  var contextNode = stack.parent;
+
+  // Do not transform delete unary expressions.
+  if (contextNode.operator === 'delete') return;
+
+  // Convert member property to function argument
+  var idx = findTokenIndex(ast.tokens, node.object.end);
+  while (ast.tokens[idx].type.label !== (node.computed ? '[' : '.')) {
+    idx++;
+  }
+  editor.remove(ast.tokens[idx].start, ast.tokens[idx].end);
+  if (node.computed) {
+    editor.remove(node.end - 1, node.end);
+  } else {
+    editor.insertRight(node.property.start, '"');
+    editor.insertLeft(node.property.end, '"');
+  }
+
+  // super.prop = value
+  if (contextNode.type === 'AssignmentExpression' && contextNode.left === node) {
+    envRecord.referencesSuperEq = true;
+    editor.overwrite(node.object.start, node.object.end, '$uperEq(');
+    editor.insertRight(contextNode.end, ')')
+
+    var idx = findTokenIndex(ast.tokens, node.end);
+    while (ast.tokens[idx].type.label !== '=') {
+      idx++;
+    }
+    editor.overwrite(ast.tokens[idx].start, ast.tokens[idx].end, ',');
+  } else {
+    envRecord.referencesSuper = true;
+    editor.overwrite(node.object.start, node.object.end, '$uper(');
+    editor.insertRight(node.end, ')');
+
+    // Ensure super.prop() use the current this binding.
+    if (contextNode.type === 'CallExpression') {
+      envRecord.referencesThis = true;
+      var idx = findTokenIndex(ast.tokens, node.end);
+      while (ast.tokens[idx].type.label !== '(') {
+        idx++;
+      }
+      editor.overwrite(ast.tokens[idx].start, ast.tokens[idx].end, contextNode.arguments.length ? '.call(this,' : '.call(this');
+    }
+  }
+}
+
 // Given the AST output of babylon parse, walk through in a depth-first order,
 // calling methods on the given visitor, providing editor as the first argument.
 function visit(ast, editor, visitor, sourceMap) {
   var stack;
-  var parent;
-  var keys = [];
+  var parent = ast;
+  var keys = ['program'];
   var index = -1;
 
   do {
@@ -185,29 +269,27 @@ function visit(ast, editor, visitor, sourceMap) {
       parent = stack.parent;
       keys = stack.keys;
       index = stack.index;
-      stack = stack.prev;
-      var node = parent ? parent[keys[index]] : ast.program;
+      var node = parent[keys[index]];
       if (node.type) {
         var visitFn = visitor[node.type] && visitor[node.type].leave;
-        visitFn && visitFn(editor, node, ast);
+        visitFn && visitFn(editor, node, ast, stack);
       }
+      stack = stack.prev;
     } else {
-      var node = parent ? parent[keys[index]] : ast.program;
-      if (node && typeof node === 'object') {
+      var node = parent[keys[index]];
+      if (node && typeof node === 'object' && (node.type || node.length && node[0].type)) {
+        stack = { parent: parent, keys: keys, index: index, prev: stack };
+        parent = node;
+        keys = Object.keys(node);
+        index = -1;
         if (node.type) {
           if (sourceMap) {
             editor.addSourcemapLocation(node.start);
             editor.addSourcemapLocation(node.end);
           }
           var visitFn = visitor[node.type] && visitor[node.type].enter;
-          if (visitFn && visitFn(editor, node, ast) === false) {
-            continue;
-          }
+          visitFn && visitFn(editor, node, ast, stack);
         }
-        stack = { parent: parent, keys: keys, index: index, prev: stack };
-        parent = node;
-        keys = Object.keys(node);
-        index = -1;
       }
     }
   } while (stack);
@@ -230,4 +312,6 @@ function findTokenIndex(tokens, offset) {
       return ptr;
     }
   }
+
+  return ptr;
 }

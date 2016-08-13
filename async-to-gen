@@ -9,6 +9,7 @@ var usage = 'Usage: async-to-gen [options] [sources] \n' +
 
 '\nOptions:\n' +
 '  -h, --help        Show this message\n' +
+'  -v, --version     Print the current version of async-to-gen\n' +
 '  -i, --ignore      Paths to ignore, Regular Expression\n' +
 '  -x, --extensions  File extensions to transform\n' +
 '  -o, --out-file    The file path to write transformed file to\n' +
@@ -70,6 +71,9 @@ while (i < process.argv.length) {
   var arg = process.argv[i++];
   if (arg === '-h' || arg === '--help') {
     process.stdout.write(usage);
+    process.exit(0);
+  } else if (arg === '-v' || arg === '--version') {
+    process.stdout.write('v' + require('./package').version);
     process.exit(0);
   } else if (arg === '-i' || arg === '--ignore') {
     ignore = new RegExp(process.argv[i++]);

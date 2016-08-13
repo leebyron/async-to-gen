@@ -158,6 +158,27 @@ And run it with `async-node`:
 async-node myScript.js
 ```
 
+#### Async I/O
+
+Async functions are great for writing asyncronous code that *looks* syncronous,
+and that's perfect for writing code that needs to perform async I/O operations.
+
+One of the original motivations for Node.js was [non-blocking I/O](https://www.youtube.com/watch?v=ztspvPYybIY), perfect! However its core libraries
+[do not yet support Promises](https://github.com/nodejs/node/pull/5020), nor do many popular libraries written for Node 😭.
+
+Do not fret, we can fix this with [promisify-node](https://github.com/nodegit/promisify-node)!
+
+```js
+const promisify = require('promisify-node');
+const fs = promisify('fs');
+
+async function emojify(filePath) {
+  const contents = await fs.readFile(filePath, 'utf8')
+  const edited = contents.replace(/:\)/g, '😉')
+  await fs.writeFile(filePath, edited, 'utf8')
+}
+```
+
 
 ## Dead-Simple Transforms
 

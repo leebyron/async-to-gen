@@ -147,7 +147,7 @@ interactive(async (say, ask) => {
   let num;
   do {
     num = Math.ceil(Math.random() * 100)
-  } while (!(await ask(`Is it ${num}? `, 'yN')))
+  } while (!await ask(`Is it ${num}? `, 'yN'))
   say(`Great, I think ${num} is a fine number.`)
 })
 ```

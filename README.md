@@ -206,3 +206,21 @@ function foo() {return __async(function*(){
 
 function __async(g){/* small helper function */}
 ```
+
+
+## Using with Babel
+
+Don't bother using both! If you're already using Babel (maybe you need JSX,
+other proposed features, or are supporting older versions of Node) then you
+might be excited to hear that using [babel-preset-es2017](https://babeljs.io/docs/plugins/preset-es2017/)
+in your `.babelrc` will provide support for async functions!
+
+Babel is an amazing tool that you should consider using, however `async-to-gen`
+intentionally makes some different choices to provide a different set of
+trade-offs. Babel is general-purpose and supports a wider set of features but
+requires some configuration and more dependencies and those features may cost
+build performance or output code quality. `async-to-gen` can only do one thing,
+but that simplicity lends itself towards faster builds and cleaner output.
+
+Ultimately, if you only need to add async function support you should try
+`async-to-gen` but if you need more features then you should use Babel.

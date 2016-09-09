@@ -16,6 +16,10 @@ You can use [Babel](https://babeljs.io/) to accomplish this, but `async-to-gen`
 is a faster, simpler, zero-configuration alternative with minimal dependencies
 for super-fast `npm install` and transform time.
 
+Also, `async-to-gen` provides support for [async generators](https://github.com/tc39/proposal-async-iteration)
+which return Async Iterators, a great syntax and primitive for producing and
+operating on streams of data.
+
 
 ## Get Started!
 
@@ -179,6 +183,49 @@ And run it with `async-node`:
 async-node myScript.js
 ```
 
+#### Streams
+
+Streaming data can be a challenging thing to get right. While [Observables](http://reactivex.io/documentation/observable.html) have provided a great library for
+streamed data, Async Generators provides language-level support for this concept!
+
+Consider subscribing to a web socket within an program using async functions:
+
+```js
+async function* stockTickerInEuro(symbol) {
+  var socket = await openWebSocket('ws://stocks.com/' + symbol)
+  try {
+    for await (var usd of socket) {
+      var euro = usd * await loadExchangeRateUSD2EUR()
+      yield euro
+    }
+  } finally {
+    closeWebSocket(socket)
+  }
+}
+```
+
+Then calling this function produces an Async Iterator (an Iterator of Promises)
+of stock ticker values.
+
+```js
+var ticker = stockTickerInEuro('AAPL')
+ticker.next().then(step => console.log(step.value))
+```
+
+Or use `for-await` loops within another async function:
+
+```js
+async function bloombergTerminal() {
+  for await (var price of stockTickerInEuro('AAPL')) {
+    console.log(price)
+  }
+}
+```
+
+NOTE: The behavior of `for-await` loops using this tool is not identical to the
+proposed spec addition. Where the proposed spec's `for-await` expects a
+`Symbol.asyncIterator` method for the iterated source, this tool expects
+`Symbol.iterator` instead since it transforms it to a `for-of` loop.
 
 ## Dead-Simple Transforms
 
@@ -186,8 +233,8 @@ When `async-to-gen` transforms async functions, it makes as few edits as
 possible, and does not affect the location of lines in a file, leading to easier
 to understand stack traces when debugging.
 
-It also includes a very small (217 character) conversion function at the bottom
-of the file.
+It also includes a very small conversion function at the bottom of the file.
+How small? 217 chars for async functions and 533 chars for async generators.
 
 **Before:**
 

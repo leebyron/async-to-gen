@@ -6,8 +6,11 @@ var MagicString = require('magic-string');
  * MagicString which has transformed generators.
  *
  * MagicString has two important functions that can be called: .toString() and
- * .generateMap() which returns a source map, as well as a property .isEdited
- * which is true when any async functions were transformed.
+ * .generateMap() which returns a source map, as well as these properties:
+ *
+ *   - .isEdited: true when any functions were transformed.
+ *   - .containsAsync: true when any async functions were transformed.
+ *   - .containsAsyncGen: true when any async generator functions were transformed.
  *
  * Options:
  *
@@ -20,6 +23,8 @@ var MagicString = require('magic-string');
 module.exports = function asyncToGen(source, options) {
   var editor = new MagicString(source);
   editor.isEdited = false;
+  editor.containsAsync = false;
+  editor.containsAsyncGen = false;
 
   // Cheap trick for files that don't actually contain async functions
   if (!(options && options.fastSkip === false) &&
@@ -42,9 +47,9 @@ module.exports = function asyncToGen(source, options) {
 
   visit(ast, editor, asyncToGenVisitor, sourceMap);
 
-  if (ast.isEdited) {
-    editor.isEdited = true;
-  }
+  editor.isEdited = Boolean(ast.containsAsync || ast.containsAsyncGen);
+  editor.containsAsync = Boolean(ast.containsAsync);
+  editor.containsAsyncGen = Boolean(ast.containsAsyncGen);
 
   return editor;
 }
@@ -79,6 +84,58 @@ var asyncHelper =
 
 module.exports.asyncHelper = asyncHelper;
 
+/**
+ * A helper function which accepts a generator function and returns an
+ * Async Iterable based on invoking the generating and resolving an iteration
+ * of Promises.
+ *
+ * Automatically included at the end of files containing async generator
+ * functions, but also exported from this module for other uses.
+ * See ./async-node for an example of another usage.
+ */
+var asyncGenHelper =
+  'function __asyncGen(g){' +
+    'var q=[],' +
+        'T=["next","throw","return"],' +
+        'I={};' +
+    'for(var i=0;i<3;i++){' +
+      'I[T[i]]=a.bind(0,i)' +
+    '}' +
+    'Symbol&&(' +
+      'Symbol.iterator&&(I[Symbol.iterator]=t),' +
+      'Symbol.asyncIterator&&(I[Symbol.asyncIterator]=t));' +
+    'function t(){' +
+      'return this' +
+    '}' +
+    'function a(t,v){' +
+      'return new Promise(function(s,j){' +
+        'q.push([s,j,v,t]);' +
+        'q.length===1&&c(v,t)' +
+      '})' +
+    '}' +
+    'function c(v,t){' +
+      'try{' +
+        'var r=g[T[t|0]](v),' +
+            'w=r.value&&r.value.__await;' +
+        'w?' +
+          'Promise.resolve(w).then(c,d):' +
+          'n(r,0)' +
+      '}catch(e){' +
+        'n(e,1)' +
+      '}' +
+    '}' +
+    'function d(e){' +
+      'c(e,1)' +
+    '}' +
+    'function n(r,s){' +
+      'q.shift()[s](r);' +
+      'q.length&&c(q[0][2],q[0][3])' +
+    '}' +
+    'return I' +
+  '}';
+
+module.exports.asyncGenHelper = asyncGenHelper;
+
 // A collection of methods for each AST type names which contain async functions to
 // be transformed.
 var asyncToGenVisitor = {
@@ -110,14 +167,19 @@ var asyncToGenVisitor = {
       ast.scope = [ node ];
     },
     leave: function (editor, node, ast) {
-      if (ast.isEdited && ast.shouldIncludeHelper) {
-        editor.append('\n' + asyncHelper + '\n');
+      if (ast.shouldIncludeHelper) {
+        if (ast.containsAsync) {
+          editor.append('\n' + asyncHelper + '\n');
+        }
+        if (ast.containsAsyncGen) {
+          editor.append('\n' + asyncGenHelper + '\n');
+        }
       }
     }
   },
   ThisExpression: {
     enter: function (editor, node, ast) {
-      var envRecord = ast.scope[ast.scope.length - 1];
+      var envRecord = currentScope(ast);
       if (envRecord.async) {
         envRecord.referencesThis = true;
       }
@@ -126,7 +188,7 @@ var asyncToGenVisitor = {
   Identifier: {
     enter: function (editor, node, ast) {
       if (node.name === 'arguments') {
-        var envRecord = ast.scope[ast.scope.length - 1];
+        var envRecord = currentScope(ast);
         if (envRecord.async) {
           envRecord.referencesArgs = true;
         }
@@ -135,6 +197,9 @@ var asyncToGenVisitor = {
   },
   MemberExpression: {
     leave: leaveMemberExpression
+  },
+  ForAwaitStatement: {
+    leave: leaveForAwait
   }
 };
 
@@ -157,8 +222,12 @@ function leaveAwait(editor, node, ast, stack) {
     end = '';
   }
 
-  // unlike await, yield must not be followed by a new line
-  if (node.loc.start.line !== node.argument.loc.start.line) {
+  var envRecord = currentScope(ast);
+  if (envRecord.generator) {
+    start += '{__await:';
+    end += '}';
+  } else if (node.loc.start.line !== node.argument.loc.start.line) {
+    // unlike await, yield must not be followed by a new line
     start += '(';
     end += ')';
   }
@@ -176,12 +245,24 @@ function enterFunction(editor, node, ast) {
 function leaveFunction(editor, node, ast) {
   ast.scope.pop();
   if (node.async) {
-    ast.isEdited = true;
+    if (node.generator) {
+      ast.containsAsyncGen = true;
+    } else {
+      ast.containsAsync = true;
+    }
+
     var idx = findTokenIndex(ast.tokens, node.start);
     while (ast.tokens[idx].value !== 'async') {
       idx++;
     }
     editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
+
+    if (node.generator) {
+      while (ast.tokens[idx].value !== '*') {
+        idx++;
+      }
+      editor.overwrite(ast.tokens[idx].start, ast.tokens[idx + 1].start, ' ');
+    }
 
     var wrapping = createAsyncWrapping(node);
     editor.insertLeft(node.body.start + 1, 'return ' + wrapping[0]);
@@ -197,10 +278,14 @@ function enterArrowFunction(editor, node, ast) {
 
 function leaveArrowFunction(editor, node, ast) {
   if (node.async) {
-    ast.isEdited = true;
+    if (node.generator) {
+      ast.containsAsyncGen = true;
+    } else {
+      ast.containsAsync = true;
+    }
 
     ast.scope.pop();
-    var envRecord = ast.scope[ast.scope.length - 1];
+    var envRecord = currentScope(ast);
     envRecord.referencesThis |= node.referencesThis;
     envRecord.referencesArgs |= node.referencesArgs;
     envRecord.referencesSuper |= node.referencesSuper;
@@ -249,8 +334,10 @@ function createAsyncWrapping(node) {
     }
   }
 
+  var helperName = node.generator ? '__asyncGen' : '__async';
+
   return [
-    '__async(function*(' + argNames.join(',') + '){',
+    helperName + '(function*(' + argNames.join(',') + '){',
     (node.referencesThis ? '}.call(' : '}(') + argValues.join(',') + '))'
   ];
 }
@@ -260,7 +347,7 @@ function leaveMemberExpression(editor, node, ast, stack) {
   if (node.object.type !== 'Super') return;
 
   // Only within transformed async function scopes.
-  var envRecord = ast.scope[ast.scope.length - 1];
+  var envRecord = currentScope(ast);
   if (!envRecord.async) return;
 
   var contextNode = stack.parent;
@@ -307,6 +394,23 @@ function leaveMemberExpression(editor, node, ast, stack) {
       editor.overwrite(ast.tokens[idx].start, ast.tokens[idx].end, contextNode.arguments.length ? '.call(this,' : '.call(this');
     }
   }
+}
+
+function leaveForAwait(editor, node, ast) {
+  var idx = findTokenIndex(ast.tokens, node.start) + 1;
+  while (ast.tokens[idx].value !== 'await') {
+    idx++;
+  }
+  editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
+
+  var tmpName = '$await' + (ast.scope.length - 1);
+  editor.move(node.left.start, node.left.end, node.body.start + 1);
+  editor.insertLeft(node.left.end, '=yield{__await:' + tmpName + '};');
+  editor.insertLeft(node.left.start, 'let ' + tmpName);
+}
+
+function currentScope(ast) {
+  return ast.scope[ast.scope.length - 1];
 }
 
 // Given the AST output of babylon parse, walk through in a depth-first order,

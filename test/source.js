@@ -10,6 +10,16 @@ var bar = async function() {
   await x
 }
 
+// async gen function statement
+async function* foo() {
+  yield await x
+}
+
+// async gen function expression
+var bar = async function* () {
+  await (yield x)
+}
+
 // async arrow functions with body
 var arrow1 = async () => {
   await 42
@@ -23,6 +33,10 @@ var arrow2 = async () =>
 var obj = {
   async baz() {
     await this.x
+  },
+
+  async* bazGen() {
+    yield await this.x
   }
 }
 
@@ -31,12 +45,20 @@ class Dog {
   async  woof() {
     await this.x
   }
+
+  async* woofGen() {
+    await (yield this.x);
+  }
 }
 
 // static async class method
 class Cat {
   static  async  miau() {
     await this.x
+  }
+
+  static async* woofGen() {
+    yield await this.x;
   }
 }
 
@@ -175,4 +197,17 @@ async function noRequiredParens() {
 async function ownLine() {
   await
     someThing;
+}
+
+// await gen on its own line
+async function* ownLineGen() {
+  await
+    someThing;
+}
+
+// for await
+async function* mapStream(stream, mapper) {
+  for await (let item of stream) {
+    yield await mapper(item);
+  }
 }

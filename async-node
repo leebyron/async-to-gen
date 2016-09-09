@@ -100,6 +100,7 @@ if (evalScript || printScript) {
 // Or begin a REPL.
 } else {
   global.__async = new Function('return ' + asyncToGen.asyncHelper)();
+  global.__asyncGen = new Function('return ' + asyncToGen.asyncGenHelper)();
   repl.start({
     prompt: '> ',
     input: process.stdin,

@@ -91,6 +91,22 @@ function within1() {return __async(function*(){
   () => () =>__async(function*(){ return this}.call(this))
 }.call(this))}
 
+// normal function referencing arguments
+function normalThis() {
+  return arguments;
+}
+
+// async function referencing arguments
+function asyncThis() {return __async(function*(arguments){
+  return arguments;
+}(arguments))}
+
+// async arrow function referencing arguments
+function within1() {return __async(function*(arguments){
+  () => () =>__async(function*(arguments){ return arguments}(arguments))
+}(arguments))}
+
+
 class SuperDuper extends BaseClass {
   constructor(arg) {
     super(arg)

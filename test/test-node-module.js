@@ -5,7 +5,7 @@ async function genAnswer() {
     throw await
       true ?
         await
-          42 :
+          arguments[0] :
         await
           99
   } catch (e) {
@@ -13,4 +13,4 @@ async function genAnswer() {
   }
 }
 
-genAnswer().then(function (val) { console.log(val) });
+genAnswer(42).then(function (val) { console.log(val) });

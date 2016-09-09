@@ -123,6 +123,16 @@ var asyncToGenVisitor = {
       }
     }
   },
+  Identifier: {
+    enter: function (editor, node, ast) {
+      if (node.name === 'arguments') {
+        var envRecord = ast.scope[ast.scope.length - 1];
+        if (envRecord.async) {
+          envRecord.referencesArgs = true;
+        }
+      }
+    }
+  },
   MemberExpression: {
     leave: leaveMemberExpression
   }
@@ -173,28 +183,9 @@ function leaveFunction(editor, node, ast) {
     }
     editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
 
-    var argNames = [];
-    var argValues = [];
-    if (node.referencesThis) {
-      argValues.push('this');
-    }
-    if (node.referencesSuper) {
-      argNames.push('$uper');
-      argValues.push('p=>super[p]');
-    }
-    if (node.referencesSuperEq) {
-      argNames.push('$uperEq');
-      argValues.push('(p,v)=>(super[p]=v)');
-    }
-
-    editor.insertLeft(
-      node.body.start + 1,
-      'return __async(function*(' + argNames.join(',') + '){'
-    );
-    editor.insertRight(
-      node.body.end - 1,
-      (node.referencesThis ? '}.call(' : '}(') + argValues.join(',') + '))'
-    );
+    var wrapping = createAsyncWrapping(node);
+    editor.insertLeft(node.body.start + 1, 'return ' + wrapping[0]);
+    editor.insertRight(node.body.end - 1, wrapping[1]);
   }
 }
 
@@ -206,31 +197,62 @@ function enterArrowFunction(editor, node, ast) {
 
 function leaveArrowFunction(editor, node, ast) {
   if (node.async) {
-    ast.scope.pop();
-    if (node.referencesThis) {
-      ast.scope[ast.scope.length - 1].referencesThis = true;
-    }
-    if (node.referencesSuper) {
-      ast.scope[ast.scope.length - 1].referencesSuper = true;
-    }
-    if (node.referencesSuperEq) {
-      ast.scope[ast.scope.length - 1].referencesSuperEq = true;
-    }
     ast.isEdited = true;
+
+    ast.scope.pop();
+    var envRecord = ast.scope[ast.scope.length - 1];
+    envRecord.referencesThis |= node.referencesThis;
+    envRecord.referencesArgs |= node.referencesArgs;
+    envRecord.referencesSuper |= node.referencesSuper;
+    envRecord.referencesSuperEq |= node.referencesSuperEq;
+
+    var wrapping = createAsyncWrapping(node);
+
     editor.remove(node.start, node.start + 6);
     if (node.body.type === 'BlockStatement') {
-      editor.overwrite(node.body.start, node.body.start + 1, '__async(function*(){');
-      editor.overwrite(node.body.end - 1, node.body.end, node.referencesThis ? '}.call(this))' : '}())');
+      editor.overwrite(node.body.start, node.body.start + 1, wrapping[0]);
+      editor.overwrite(node.body.end - 1, node.body.end, wrapping[1]);
     } else {
       var idx = findTokenIndex(ast.tokens, node.body.start) - 1;
       while (ast.tokens[idx].type.label !== '=>') {
         idx--;
       }
-      editor.insertRight(ast.tokens[idx].end, '__async(function*(){');
+      editor.insertRight(ast.tokens[idx].end, wrapping[0]);
       editor.insertLeft(node.body.start, 'return ');
-      editor.insertRight(node.body.end, node.referencesThis ? '}.call(this))' : '}())');
+      editor.insertRight(node.body.end, wrapping[1]);
     }
   }
+}
+
+function createAsyncWrapping(node) {
+  var argNames = [];
+  var argValues = [];
+
+  if (node.referencesThis) {
+    argValues.push('this');
+  }
+
+  if (node.referencesArgs) {
+    argNames.push('arguments');
+    argValues.push('arguments');
+  }
+
+  if (node.type !== 'ArrowFunctionExpression') {
+    if (node.referencesSuper) {
+      argNames.push('$uper');
+      argValues.push('p=>super[p]');
+    }
+
+    if (node.referencesSuperEq) {
+      argNames.push('$uperEq');
+      argValues.push('(p,v)=>(super[p]=v)');
+    }
+  }
+
+  return [
+    '__async(function*(' + argNames.join(',') + '){',
+    (node.referencesThis ? '}.call(' : '}(') + argValues.join(',') + '))'
+  ];
 }
 
 function leaveMemberExpression(editor, node, ast, stack) {

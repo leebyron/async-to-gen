@@ -148,8 +148,8 @@ for (var i = 0; i < sources.length; i++) {
     var content = fs.readFileSync(source, 'utf8');
     var result = transformSource(content, source);
     if (outDir) {
-      mkdirp(path.dirname(path.join(outDir, source)));
       outFile = path.join(outDir, isDirSource ? path.relative(sources[0], source) : source);
+      mkdirp(path.dirname(outFile));
     }
     if (outFile) {
       fs.writeFileSync(outFile, result);

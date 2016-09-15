@@ -29,6 +29,9 @@ var arrow1 = () => __async(function*(){
 var arrow2 = () =>__async(function*(){
   return yield 42}());
 
+// async function with minimal whitespace
+var arrow3=()=>return __async(function*(){yield(42)}())
+
 // async obj member function
 var obj = {
   baz() {return __async(function*(){

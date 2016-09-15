@@ -28,7 +28,7 @@ module.exports = function asyncToGen(source, options) {
 
   // Cheap trick for files that don't actually contain async functions
   if (!(options && options.fastSkip === false) &&
-      source.indexOf('async ') === -1) {
+      source.indexOf('async') === -1) {
     return editor;
   }
 
@@ -293,7 +293,12 @@ function leaveArrowFunction(editor, node, ast) {
 
     var wrapping = createAsyncWrapping(node);
 
-    editor.remove(node.start, node.start + 6);
+    var idx = findTokenIndex(ast.tokens, node.start);
+    while (ast.tokens[idx].value !== 'async') {
+      idx++;
+    }
+    editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
+
     if (node.body.type === 'BlockStatement') {
       editor.overwrite(node.body.start, node.body.start + 1, wrapping[0]);
       editor.overwrite(node.body.end - 1, node.body.end, wrapping[1]);

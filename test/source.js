@@ -29,6 +29,9 @@ var arrow1 = async () => {
 var arrow2 = async () =>
   await 42;
 
+// async function with minimal whitespace
+var arrow3=async()=>await(42)
+
 // async obj member function
 var obj = {
   async baz() {

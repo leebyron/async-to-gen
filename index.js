@@ -20,7 +20,8 @@ var MagicString = require('magic-string');
  *               the word "async" in the source.
  *   - includeHelper: (default: true) includes the __async function in the file.
  */
-module.exports = function asyncToGen(source, options) {
+module.exports = asyncToGen;
+function asyncToGen(source, options) {
   var editor = new MagicString(source);
   editor.isEdited = false;
   editor.containsAsync = false;
@@ -52,6 +53,13 @@ module.exports = function asyncToGen(source, options) {
   editor.containsAsyncGen = Boolean(ast.containsAsyncGen);
 
   return editor;
+}
+
+/**
+ * A method which the Jest testing library looks for to process source code.
+ */
+module.exports.process = function process(source) {
+  return String(asyncToGen(source));
 }
 
 /**

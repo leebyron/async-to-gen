@@ -156,7 +156,7 @@ describe('My express app', () => {
 
 #### Jest
 
-Writing tests in Jest? Use the (scriptPreprocessor)[http://facebook.github.io/jest/docs/api.html#scriptpreprocessor-string] entry in your jest configuration in package.json:
+Writing tests in Jest? Use the [scriptPreprocessor](http://facebook.github.io/jest/docs/api.html#scriptpreprocessor-string) entry in your jest configuration in package.json:
 
 ```js
 {

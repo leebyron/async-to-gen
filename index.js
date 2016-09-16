@@ -448,7 +448,7 @@ function visit(ast, editor, visitor, sourceMap) {
       stack = stack.prev;
     } else {
       var node = parent[keys[index]];
-      if (node && typeof node === 'object' && (node.type || node.length && node[0].type)) {
+      if (node && typeof node === 'object' && (node.type || node.length)) {
         stack = { parent: parent, keys: keys, index: index, prev: stack };
         parent = node;
         keys = Object.keys(node);

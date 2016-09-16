@@ -215,6 +215,9 @@ function mapStream(stream, mapper) {return __asyncGen(function*(){
   }
 }())}
 
+// doesn't break for holey destructuring (#22)
+const [,holey] = [1,2,3]
+
 function __async(g){return new Promise(function(s,j){function c(a,x){try{var r=g[x?"throw":"next"](a)}catch(e){return j(e)}return r.done?s(r.value):Promise.resolve(r.value).then(c,d)}function d(e){return c(e,1)}c()})}
 
 function __asyncGen(g){var q=[],T=["next","throw","return"],I={};for(var i=0;i<3;i++){I[T[i]]=a.bind(0,i)}Symbol&&(Symbol.iterator&&(I[Symbol.iterator]=t),Symbol.asyncIterator&&(I[Symbol.asyncIterator]=t));function t(){return this}function a(t,v){return new Promise(function(s,j){q.push([s,j,v,t]);q.length===1&&c(v,t)})}function c(v,t){try{var r=g[T[t|0]](v),w=r.value&&r.value.__await;w?Promise.resolve(w).then(c,d):n(r,0)}catch(e){n(e,1)}}function d(e){c(e,1)}function n(r,s){q.shift()[s](r);q.length&&c(q[0][2],q[0][3])}return I}

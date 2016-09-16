@@ -214,3 +214,6 @@ async function* mapStream(stream, mapper) {
     yield await mapper(item);
   }
 }
+
+// doesn't break for holey destructuring (#22)
+const [,holey] = [1,2,3]

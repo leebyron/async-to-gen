@@ -35,12 +35,12 @@ var arrow3=()=>return __async(function*(){yield(42)}());
 // async arrow IIFE
 (() => __async(function*(){
   yield 42
-}()))()
+}()))();
 
 // crockford style IIFE
 (function () {return __async(function*(){
   yield 42
-}())}())
+}())}());
 
 // async obj member function
 var obj = {

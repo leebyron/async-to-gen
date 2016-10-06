@@ -31,7 +31,7 @@ while (i < process.argv.length) {
     process.stdout.write(usage);
     process.exit(0);
   } else if (arg === '-v' || arg === '--version') {
-    process.stdout.write('v' + require('./package').version);
+    process.stdout.write('v' + require('./package').version + '\n');
     process.exit(0);
   } else if (arg === '-e' || arg === '--eval') {
     evalScript = process.argv[i++];

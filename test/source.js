@@ -30,7 +30,17 @@ var arrow2 = async () =>
   await 42;
 
 // async function with minimal whitespace
-var arrow3=async()=>await(42)
+var arrow3=async()=>await(42);
+
+// async arrow IIFE
+(async () => {
+  await 42
+})()
+
+// crockford style IIFE
+(async function () {
+  await 42
+}())
 
 // async obj member function
 var obj = {

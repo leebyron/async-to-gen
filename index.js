@@ -207,6 +207,9 @@ var asyncToGenVisitor = {
   MemberExpression: {
     leave: leaveMemberExpression
   },
+  AssignmentExpression: {
+    leave: leaveAssignmentExpression
+  },
   ForAwaitStatement: {
     leave: leaveForAwait
   }
@@ -360,16 +363,60 @@ function leaveMemberExpression(editor, node, ast, stack) {
   // Only transform super member expressions.
   if (node.object.type !== 'Super') return;
 
+  var contextNode = stack.parent;
+
+  // Do not transform delete unary or left-hand-side expressions.
+  if (
+    contextNode.operator === 'delete' ||
+    contextNode.type === 'AssignmentExpression' && contextNode.left === node
+  ) return;
+
   // Only within transformed async function scopes.
   var envRecord = currentScope(ast);
   if (!envRecord.async) return;
 
-  var contextNode = stack.parent;
+  envRecord.referencesSuper = true;
 
-  // Do not transform delete unary expressions.
-  if (contextNode.operator === 'delete') return;
+  convertSuperMember(editor, node, ast);
 
-  // Convert member property to function argument
+  editor.overwrite(node.object.start, node.object.end, '$uper(');
+  editor.insertLeft(node.end, ')');
+
+  // Ensure super.prop() use the current this binding.
+  if (contextNode.type === 'CallExpression') {
+    envRecord.referencesThis = true;
+    var idx = findTokenIndex(ast.tokens, node.end);
+    while (ast.tokens[idx].type.label !== '(') {
+      idx++;
+    }
+    editor.overwrite(ast.tokens[idx].start, ast.tokens[idx].end, contextNode.arguments.length ? '.call(this,' : '.call(this');
+  }
+}
+
+function leaveAssignmentExpression(editor, node, ast, stack) {
+  // Only transform super assignment expressions.
+  var left = node.left;
+  if (left.type !== 'MemberExpression' || left.object.type !== 'Super') return;
+
+  // Only within transformed async function scopes.
+  var envRecord = currentScope(ast);
+  if (!envRecord.async) return;
+
+  envRecord.referencesSuperEq = true;
+
+  convertSuperMember(editor, left, ast);
+
+  editor.overwrite(left.object.start, left.object.end, '$uperEq(');
+  editor.insertLeft(node.end, ')')
+
+  var idx = findTokenIndex(ast.tokens, left.end);
+  while (ast.tokens[idx].type.label !== '=') {
+    idx++;
+  }
+  editor.overwrite(ast.tokens[idx].start, ast.tokens[idx].end, ',');
+}
+
+function convertSuperMember(editor, node, ast) {
   var idx = findTokenIndex(ast.tokens, node.object.end);
   while (ast.tokens[idx].type.label !== (node.computed ? '[' : '.')) {
     idx++;
@@ -380,33 +427,6 @@ function leaveMemberExpression(editor, node, ast, stack) {
   } else {
     editor.insertRight(node.property.start, '"');
     editor.insertLeft(node.property.end, '"');
-  }
-
-  // super.prop = value
-  if (contextNode.type === 'AssignmentExpression' && contextNode.left === node) {
-    envRecord.referencesSuperEq = true;
-    editor.overwrite(node.object.start, node.object.end, '$uperEq(');
-    editor.insertRight(contextNode.end, ')')
-
-    var idx = findTokenIndex(ast.tokens, node.end);
-    while (ast.tokens[idx].type.label !== '=') {
-      idx++;
-    }
-    editor.overwrite(ast.tokens[idx].start, ast.tokens[idx].end, ',');
-  } else {
-    envRecord.referencesSuper = true;
-    editor.overwrite(node.object.start, node.object.end, '$uper(');
-    editor.insertLeft(node.end, ')');
-
-    // Ensure super.prop() use the current this binding.
-    if (contextNode.type === 'CallExpression') {
-      envRecord.referencesThis = true;
-      var idx = findTokenIndex(ast.tokens, node.end);
-      while (ast.tokens[idx].type.label !== '(') {
-        idx++;
-      }
-      editor.overwrite(ast.tokens[idx].start, ast.tokens[idx].end, contextNode.arguments.length ? '.call(this,' : '.call(this');
-    }
   }
 }
 

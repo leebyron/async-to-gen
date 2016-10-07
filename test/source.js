@@ -150,6 +150,7 @@ class SuperDuper extends BaseClass {
   async barAsync() {
     const arg = super.arg()
     super.arg = super.arg()
+    super.arg = super[super.arg = super.arg()]
 
     super /*a*/ . /*b*/ arg /*c*/ = /*d*/ super /*e*/ . /*f*/ arg /*g*/
     super /*a*/ [ /*b*/ arg /*c*/ ] /*d*/ = /*e*/ super /*f*/ [ /*g*/ arg /*h*/ ] /*i*/

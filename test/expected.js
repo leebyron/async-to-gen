@@ -150,6 +150,7 @@ class SuperDuper extends BaseClass {
   barAsync() {return __async(function*($uper,$uperEq){
     const arg = $uper("arg").call(this)
     $uperEq("arg" , $uper("arg").call(this))
+    $uperEq("arg" , $uper($uperEq("arg" , $uper("arg").call(this))))
 
     $uperEq( /*a*/  /*b*/ "arg" /*c*/ , /*d*/ $uper( /*e*/  /*f*/ "arg")) /*g*/
     $uperEq( /*a*/  /*b*/ arg /*c*/  /*d*/ , /*e*/ $uper( /*f*/  /*g*/ arg /*h*/ )) /*i*/

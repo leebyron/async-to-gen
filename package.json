@@ -18,7 +18,7 @@
     "url": "http://github.com/leebyron/async-to-gen.git"
   },
   "scripts": {
-    "test": "DIFF=$(./async-to-gen test/source.js | diff test/expected.js -); if [ -n \"$DIFF\" ]; then echo \"$DIFF\"; exit 1; fi; RES=$(node -e 'require(\"./register\");require(\"./test/test-node-module.js\")'); if [ \"$RES\" != 42 ]; then echo 'Node register hook failed'; exit 1; fi; ASYNC_NODE=$(./async-node ./test/test-node-module.js); if [ \"$ASYNC_NODE\" != 42 ]; then echo 'async-node failed'; exit 1; fi; ASYNC_GEN_NODE=$(./async-node ./test/test-async-generator.js); if [ \"$ASYNC_GEN_NODE\" != 42 ]; then echo 'async-node failed for async generators'; exit 1; fi;",
+    "test": "DIFF=$(./async-to-gen test/source.js | diff test/expected.js -); if [ -n \"$DIFF\" ]; then echo \"$DIFF\"; exit 1; fi; RES=$(node -e 'require(\"./register\");require(\"./test/test-node-module.js\")'); if [ \"$RES\" != 42 ]; then echo 'Node register hook failed'; exit 1; fi; ASYNC_NODE=$(./async-node ./test/test-node-module.js); if [ \"$ASYNC_NODE\" != 42 ]; then echo 'async-node failed'; exit 1; fi; ASYNC_GEN_NODE=$(./async-node ./test/test-async-generator.js); if [ \"$ASYNC_GEN_NODE\" != 42 ]; then echo 'async-node failed for async generators'; exit 1; fi; ./async-to-gen test/memtest.js | node --max-old-space-size=10;",
     "test-update": "./async-to-gen test/source.js > test/expected.js"
   },
   "files": [

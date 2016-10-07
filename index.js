@@ -77,14 +77,15 @@ var asyncHelper =
         'try{' +
           'var r=g[x?"throw":"next"](a)' +
         '}catch(e){' +
-          'return j(e)' +
+          'j(e);'+
+          'return' +
         '}' +
-        'return r.done?' +
+        'r.done?' +
           's(r.value):' +
           'Promise.resolve(r.value).then(c,d)' +
       '}' +
       'function d(e){' +
-        'return c(e,1)' +
+        'c(e,1)' +
       '}' +
       'c()' +
     '})' +

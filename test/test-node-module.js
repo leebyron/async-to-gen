@@ -5,9 +5,9 @@ async function genAnswer() {
     throw await
       true ?
         await
-          arguments[0] :
+          Promise.resolve(arguments[0]) :
         await
-          99
+          Promise.resolve(99)
   } catch (e) {
     return e;
   }

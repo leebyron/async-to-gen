@@ -396,7 +396,7 @@ function leaveMemberExpression(editor, node, ast, stack) {
   } else {
     envRecord.referencesSuper = true;
     editor.overwrite(node.object.start, node.object.end, '$uper(');
-    editor.insertRight(node.end, ')');
+    editor.insertLeft(node.end, ')');
 
     // Ensure super.prop() use the current this binding.
     if (contextNode.type === 'CallExpression') {

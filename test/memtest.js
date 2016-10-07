@@ -1,8 +1,8 @@
-var out;
-
 async function longLoop() {
   for (var i = 0; i < 1000000; i++) await undefined;
-  out = true;
+  return true;
 }
 
-longLoop().then(() => process.exit(out ? 0 : 1));
+longLoop().then(function (finished) {
+  process.exit(finished ? 0 : 1)
+});

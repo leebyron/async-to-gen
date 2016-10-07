@@ -38,7 +38,7 @@
     "es7"
   ],
   "dependencies": {
-    "babylon": "^6.8.4",
-    "magic-string": "^0.15.2"
+    "babylon": "^6.11.4",
+    "magic-string": "^0.16.0"
   }
 }

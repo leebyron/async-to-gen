@@ -1,7 +1,7 @@
-let out;
+var out;
 
 async function longLoop() {
-  for (let i = 0; i < 1000000; i++) await undefined;
+  for (var i = 0; i < 1000000; i++) await undefined;
   out = true;
 }
 

@@ -250,7 +250,7 @@ possible, and does not affect the location of lines in a file, leading to easier
 to understand stack traces when debugging.
 
 It also includes a very small conversion function at the bottom of the file.
-How small? 217 chars for async functions and 533 chars for async generators.
+How small? 204 chars for async functions and 533 chars for async generators.
 
 **Before:**
 

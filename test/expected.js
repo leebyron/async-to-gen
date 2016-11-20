@@ -226,6 +226,14 @@ function mapStream(stream, mapper) {return __asyncGen(function*(){
   }
 }())}
 
+function reduceStream(stream, reducer, initial) {return __async(function*(){
+  var value = initial;
+  for (let $await1 of stream) {let item=yield $await1;
+    value = reducer(value, yield mapper(item));
+  }
+  return value;
+}())}
+
 // doesn't break for holey destructuring (#22)
 const [,holey] = [1,2,3]
 

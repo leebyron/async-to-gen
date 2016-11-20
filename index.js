@@ -431,6 +431,7 @@ function convertSuperMember(editor, node, ast) {
 }
 
 function leaveForAwait(editor, node, ast) {
+  var envRecord = currentScope(ast);
   var idx = findTokenIndex(ast.tokens, node.start) + 1;
   while (ast.tokens[idx].value !== 'await') {
     idx++;
@@ -439,7 +440,12 @@ function leaveForAwait(editor, node, ast) {
 
   var tmpName = '$await' + (ast.scope.length - 1);
   editor.move(node.left.start, node.left.end, node.body.start + 1);
-  editor.insertLeft(node.left.end, '=yield{__await:' + tmpName + '};');
+  editor.insertLeft(
+    node.left.end,
+    envRecord.generator ?
+      '=yield{__await:' + tmpName + '};' :
+      '=yield ' + tmpName + ';'
+  );
   editor.insertLeft(node.left.start, 'let ' + tmpName);
 }
 

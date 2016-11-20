@@ -226,5 +226,13 @@ async function* mapStream(stream, mapper) {
   }
 }
 
+async function reduceStream(stream, reducer, initial) {
+  var value = initial;
+  for await (let item of stream) {
+    value = reducer(value, await mapper(item));
+  }
+  return value;
+}
+
 // doesn't break for holey destructuring (#22)
 const [,holey] = [1,2,3]

@@ -232,7 +232,7 @@ var ticker = stockTickerInEuro('AAPL')
 ticker.next().then(step => console.log(step.value))
 ```
 
-Or use `for-await` loops within another async function:
+Or use `for-await-of` loops within another async function:
 
 ```js
 async function bloombergTerminal() {
@@ -242,8 +242,8 @@ async function bloombergTerminal() {
 }
 ```
 
-NOTE: The behavior of `for-await` loops using this tool is not identical to the
-proposed spec addition. Where the proposed spec's `for-await` expects a
+NOTE: The behavior of `for-await-of` loops using this tool is not identical to the
+proposed spec addition. Where the proposed spec's `for-await-of` expects a
 `Symbol.asyncIterator` method for the iterated source, this tool expects
 `Symbol.iterator` instead since it transforms it to a `for-of` loop.
 

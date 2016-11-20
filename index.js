@@ -26,6 +26,7 @@ function asyncToGen(source, options) {
   editor.isEdited = false;
   editor.containsAsync = false;
   editor.containsAsyncGen = false;
+  editor.containsForAwaitOf = false;
 
   // Cheap trick for files that don't actually contain async functions
   if (!(options && options.fastSkip === false) &&
@@ -48,9 +49,14 @@ function asyncToGen(source, options) {
 
   visit(ast, editor, asyncToGenVisitor, sourceMap);
 
-  editor.isEdited = Boolean(ast.containsAsync || ast.containsAsyncGen);
+  editor.isEdited = Boolean(
+    ast.containsAsync ||
+    ast.containsAsyncGen ||
+    ast.containsForAwaitOf
+  );
   editor.containsAsync = Boolean(ast.containsAsync);
   editor.containsAsyncGen = Boolean(ast.containsAsyncGen);
+  editor.containsForAwaitOf = Boolean(ast.containsForAwaitOf);
 
   return editor;
 }
@@ -110,12 +116,11 @@ var asyncGenHelper =
     'for(var i=0;i<3;i++){' +
       'I[T[i]]=a.bind(0,i)' +
     '}' +
-    'Symbol&&(' +
-      'Symbol.iterator&&(I[Symbol.iterator]=t),' +
-      'Symbol.asyncIterator&&(I[Symbol.asyncIterator]=t));' +
-    'function t(){' +
+    'I[Symbol?' +
+      'Symbol.asyncIterator||(Symbol.asyncIterator=Symbol()):' +
+      '"@@asyncIterator"]=function (){' +
       'return this' +
-    '}' +
+    '};' +
     'function a(t,v){' +
       'return new Promise(function(s,j){' +
         'q.push([s,j,v,t]);' +
@@ -144,6 +149,23 @@ var asyncGenHelper =
   '}';
 
 module.exports.asyncGenHelper = asyncGenHelper;
+
+/**
+ * A helper function which provides an async iterator from an async iterable.
+ *
+ * Automatically included at the end of files containing for-await-of loops, but
+ * also exported from this module for other uses.
+ * See ./async-node for an example of another usage.
+ */
+var asyncIteratorHelper =
+  'function __asyncIterator(o){' +
+    'var i=o[Symbol&&Symbol.asyncIterator||"@@asyncIterator"]||' +
+      'o[Symbol&&Symbol.iterator||"@@iterator"];' +
+    'if(!i)throw new TypeError("Object is not AsyncIterable.");' +
+    'return i.call(o)' +
+  '}';
+
+module.exports.asyncIteratorHelper = asyncIteratorHelper;
 
 // A collection of methods for each AST type names which contain async functions to
 // be transformed.
@@ -182,6 +204,9 @@ var asyncToGenVisitor = {
         }
         if (ast.containsAsyncGen) {
           editor.append('\n' + asyncGenHelper + '\n');
+        }
+        if (ast.containsForAwaitOf) {
+          editor.append('\n' + asyncIteratorHelper + '\n');
         }
       }
     }
@@ -432,6 +457,9 @@ function convertSuperMember(editor, node, ast) {
 }
 
 function leaveForAwait(editor, node, ast) {
+  ast.containsForAwaitOf = true;
+
+  // Remove 'await'
   var envRecord = currentScope(ast);
   var idx = findTokenIndex(ast.tokens, node.start) + 1;
   while (ast.tokens[idx].value !== 'await') {
@@ -439,15 +467,43 @@ function leaveForAwait(editor, node, ast) {
   }
   editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
 
-  var tmpName = '$await' + (ast.scope.length - 1);
+  // Remove 'of'
+  idx = findTokenIndex(ast.tokens, node.right.start) - 1;
+  while (ast.tokens[idx].value !== 'of') {
+    idx--;
+  }
+  editor.remove(ast.tokens[idx].start, ast.tokens[idx + 1].start);
+
+  // Convert for-await-of to typical for loop that operates on the async iterable
+  // interface and properly closes iterators on completion.
+  var iter = '$i' + (ast.scope.length - 1);
+  var step = '$s' + (ast.scope.length - 1);
+  var error = '$e' + (ast.scope.length - 1);
+  var left = step + '=null,' + iter + '=__asyncIterator(';
+  var right = ');' + step + '=' + toYield(iter + '.next()', ast) + ',!' + step + '.done;';
+  var head = 'var ' + iter + ',' + step + ',' + error + ';try{';
+  var tail =
+    '}catch(e){' +
+      error + '=e' +
+    '}finally{' +
+      'try{' +
+        '!' + step + '.done&&' + iter + '.return&&(' + toYield(iter + '.return()', ast) + ')' +
+      '}finally{' +
+        'if(' + error + ')throw ' + error +
+      '}' +
+    '}';
+
+  editor.insertRight(node.start, head);
   editor.move(node.left.start, node.left.end, node.body.start + 1);
-  editor.insertLeft(
-    node.left.end,
-    envRecord.generator ?
-      '=yield{__await:' + tmpName + '};' :
-      '=yield ' + tmpName + ';'
-  );
-  editor.insertLeft(node.left.start, 'let ' + tmpName);
+  editor.insertLeft(node.left.end, '=' + step + '.value;');
+  editor.insertLeft(node.left.start, left);
+  editor.insertRight(node.right.end, right);
+  editor.insertLeft(node.end, tail);
+}
+
+function toYield(expr, ast) {
+  var envRecord = currentScope(ast);
+  return envRecord.generator ? 'yield{__await:' + expr + '}' : 'yield ' + expr;
 }
 
 function currentScope(ast) {

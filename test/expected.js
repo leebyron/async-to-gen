@@ -132,13 +132,13 @@ function normalThis() {
 }
 
 // async function referencing arguments
-function asyncThis() {return __async(function*(arguments){
-  return arguments;
+function asyncThis() {return __async(function*(argument$){
+  return argument$;
 }(arguments))}
 
 // async arrow function referencing arguments
-function within1() {return __async(function*(arguments){
-  () => () =>__async(function*(arguments){ return arguments}(arguments))
+function within1() {return __async(function*(argument$){
+  () => () =>__async(function*(argument$){ return argument$}(arguments))
 }(arguments))}
 
 

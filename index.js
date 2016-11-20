@@ -200,6 +200,7 @@ var asyncToGenVisitor = {
         var envRecord = currentScope(ast);
         if (envRecord.async) {
           envRecord.referencesArgs = true;
+          editor.overwrite(node.start, node.end, 'argument$');
         }
       }
     }
@@ -335,7 +336,7 @@ function createAsyncWrapping(node) {
   }
 
   if (node.referencesArgs) {
-    argNames.push('arguments');
+    argNames.push('argument$');
     argValues.push('arguments');
   }
 

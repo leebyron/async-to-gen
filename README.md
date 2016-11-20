@@ -76,12 +76,16 @@ Promise { <pending> }
 ## Use the require hook
 
 Using the require hook allows you to automatically compile files on the fly when
-requiring in node:
+requiring in node, useful during development:
 
 ```js
 require('async-to-gen/register')
 require('./some-module-with-async-functions')
 ```
+
+As always, don't forget to use `async-to-gen` to compile files before distributing
+your code on npm, as using the require hook affects the whole runtime and not
+just your module.
 
 
 ## Use in Build Systems:

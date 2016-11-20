@@ -221,16 +221,16 @@ function ownLineGen() {return __asyncGen(function*(){
 
 // for await
 function mapStream(stream, mapper) {return __asyncGen(function*(){
-  for (let $await1 of stream) {let item=yield{__await:$await1};
+  var $i1,$s1,$e1;try{for ($s1=null,$i1=__asyncIterator( stream);$s1=yield{__await:$i1.next()},!$s1.done;) {let item=$s1.value;
     yield yield{__await: mapper(item)};
-  }
+  }}catch(e){$e1=e}finally{try{!$s1.done&&$i1.return&&(yield{__await:$i1.return()})}finally{if($e1)throw $e1}}
 }())}
 
 function reduceStream(stream, reducer, initial) {return __async(function*(){
   var value = initial;
-  for (let $await1 of stream) {let item=yield $await1;
-    value = reducer(value, yield mapper(item));
-  }
+  var $i1,$s1,$e1;try{for ($s1=null,$i1=__asyncIterator( stream);$s1=yield $i1.next(),!$s1.done;) {let item=$s1.value;
+    value = reducer(value, item);
+  }}catch(e){$e1=e}finally{try{!$s1.done&&$i1.return&&(yield $i1.return())}finally{if($e1)throw $e1}}
   return value;
 }())}
 
@@ -239,4 +239,6 @@ const [,holey] = [1,2,3]
 
 function __async(g){return new Promise(function(s,j){function c(a,x){try{var r=g[x?"throw":"next"](a)}catch(e){j(e);return}r.done?s(r.value):Promise.resolve(r.value).then(c,d)}function d(e){c(e,1)}c()})}
 
-function __asyncGen(g){var q=[],T=["next","throw","return"],I={};for(var i=0;i<3;i++){I[T[i]]=a.bind(0,i)}Symbol&&(Symbol.iterator&&(I[Symbol.iterator]=t),Symbol.asyncIterator&&(I[Symbol.asyncIterator]=t));function t(){return this}function a(t,v){return new Promise(function(s,j){q.push([s,j,v,t]);q.length===1&&c(v,t)})}function c(v,t){try{var r=g[T[t|0]](v),w=r.value&&r.value.__await;w?Promise.resolve(w).then(c,d):n(r,0)}catch(e){n(e,1)}}function d(e){c(e,1)}function n(r,s){q.shift()[s](r);q.length&&c(q[0][2],q[0][3])}return I}
+function __asyncGen(g){var q=[],T=["next","throw","return"],I={};for(var i=0;i<3;i++){I[T[i]]=a.bind(0,i)}I[Symbol?Symbol.asyncIterator||(Symbol.asyncIterator=Symbol()):"@@asyncIterator"]=function (){return this};function a(t,v){return new Promise(function(s,j){q.push([s,j,v,t]);q.length===1&&c(v,t)})}function c(v,t){try{var r=g[T[t|0]](v),w=r.value&&r.value.__await;w?Promise.resolve(w).then(c,d):n(r,0)}catch(e){n(e,1)}}function d(e){c(e,1)}function n(r,s){q.shift()[s](r);q.length&&c(q[0][2],q[0][3])}return I}
+
+function __asyncIterator(o){var i=o[Symbol&&Symbol.asyncIterator||"@@asyncIterator"]||o[Symbol&&Symbol.iterator||"@@iterator"];if(!i)throw new TypeError("Object is not AsyncIterable.");return i.call(o)}

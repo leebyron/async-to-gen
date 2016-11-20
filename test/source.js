@@ -229,7 +229,7 @@ async function* mapStream(stream, mapper) {
 async function reduceStream(stream, reducer, initial) {
   var value = initial;
   for await (let item of stream) {
-    value = reducer(value, await mapper(item));
+    value = reducer(value, item);
   }
   return value;
 }

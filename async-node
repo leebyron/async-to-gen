@@ -101,6 +101,7 @@ if (evalScript || printScript) {
 } else {
   global.__async = new Function('return ' + asyncToGen.asyncHelper)();
   global.__asyncGen = new Function('return ' + asyncToGen.asyncGenHelper)();
+  global.__asyncIterator = new Function('return ' + asyncToGen.asyncIteratorHelper)();
   repl.start({
     prompt: '> ',
     input: process.stdin,

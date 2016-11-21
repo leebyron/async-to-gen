@@ -242,11 +242,6 @@ async function bloombergTerminal() {
 }
 ```
 
-NOTE: The behavior of `for-await-of` loops using this tool is not identical to the
-proposed spec addition. Where the proposed spec's `for-await-of` expects a
-`Symbol.asyncIterator` method for the iterated source, this tool expects
-`Symbol.iterator` instead since it transforms it to a `for-of` loop.
-
 ## Dead-Simple Transforms
 
 When `async-to-gen` transforms async functions, it makes as few edits as

@@ -79,7 +79,7 @@ Using the require hook allows you to automatically compile files on the fly when
 requiring in node, useful during development:
 
 ```js
-require('async-to-gen/register')
+require('async-to-gen/register')(options);
 require('./some-module-with-async-functions')
 ```
 

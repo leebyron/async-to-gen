@@ -31,6 +31,8 @@
     "async",
     "await",
     "async-await",
+    "for-await",
+    "for-await-of",
     "generators",
     "compiler",
     "transpiler",

@@ -272,7 +272,7 @@ function leaveAwait(editor, node, ast, stack) {
 
   editor.overwrite(node.start, node.start + 5, start);
   if (end) {
-    editor.insertLeft(node.end, end);
+    editor.appendLeft(node.end, end);
   }
 }
 
@@ -303,8 +303,8 @@ function leaveFunction(editor, node, ast) {
     }
 
     var wrapping = createAsyncWrapping(node);
-    editor.insertLeft(node.body.start + 1, 'return ' + wrapping[0]);
-    editor.insertRight(node.body.end - 1, wrapping[1]);
+    editor.appendLeft(node.body.start + 1, 'return ' + wrapping[0]);
+    editor.prependRight(node.body.end - 1, wrapping[1]);
   }
 }
 
@@ -345,9 +345,9 @@ function leaveArrowFunction(editor, node, ast) {
       while (ast.tokens[idx].type.label !== '=>') {
         idx--;
       }
-      editor.insertRight(ast.tokens[idx].end, wrapping[0]);
-      editor.insertLeft(node.body.start, 'return ');
-      editor.insertRight(node.body.end, wrapping[1]);
+      editor.prependRight(ast.tokens[idx].end, wrapping[0]);
+      editor.appendLeft(node.body.start, 'return ');
+      editor.prependRight(node.body.end, wrapping[1]);
     }
   }
 }
@@ -406,7 +406,7 @@ function leaveMemberExpression(editor, node, ast, stack) {
   convertSuperMember(editor, node, ast);
 
   editor.overwrite(node.object.start, node.object.end, '$uper(');
-  editor.insertLeft(node.end, ')');
+  editor.appendLeft(node.end, ')');
 
   // Ensure super.prop() use the current this binding.
   if (contextNode.type === 'CallExpression') {
@@ -433,7 +433,7 @@ function leaveAssignmentExpression(editor, node, ast, stack) {
   convertSuperMember(editor, left, ast);
 
   editor.overwrite(left.object.start, left.object.end, '$uperEq(');
-  editor.insertLeft(node.end, ')')
+  editor.appendLeft(node.end, ')')
 
   var idx = findTokenIndex(ast.tokens, left.end);
   while (ast.tokens[idx].type.label !== '=') {
@@ -451,8 +451,8 @@ function convertSuperMember(editor, node, ast) {
   if (node.computed) {
     editor.remove(node.end - 1, node.end);
   } else {
-    editor.insertRight(node.property.start, '"');
-    editor.insertLeft(node.property.end, '"');
+    editor.prependRight(node.property.start, '"');
+    editor.appendLeft(node.property.end, '"');
   }
 }
 
@@ -493,12 +493,12 @@ function leaveForAwait(editor, node, ast) {
       '}' +
     '}';
 
-  editor.insertRight(node.start, head);
+  editor.prependRight(node.start, head);
   editor.move(node.left.start, node.left.end, node.body.start + 1);
-  editor.insertLeft(node.left.end, '=' + step + '.value;');
-  editor.insertLeft(node.left.start, left);
-  editor.insertRight(node.right.end, right);
-  editor.insertLeft(node.end, tail);
+  editor.appendLeft(node.left.end, '=' + step + '.value;');
+  editor.appendLeft(node.left.start, left);
+  editor.prependRight(node.right.end, right);
+  editor.appendLeft(node.end, tail);
 }
 
 function toYield(expr, ast) {

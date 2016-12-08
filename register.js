@@ -1,13 +1,26 @@
-var Module = require('module');
 var asyncToGen = require('./index');
 
-// Rather than use require.extensions, swizzle Module#_compile. Not only does
-// this typically leverage the existing behavior of require.extensions['.js'],
-// but allows for use alongside other "require extension hook" if necessary.
-var super_compile = Module.prototype._compile;
-Module.prototype._compile = function _compile(source, filename) {
-  var transformedSource = filename.indexOf('node_modules/') === -1
-    ? asyncToGen(source).toString()
-    : source;
-  super_compile.call(this, transformedSource, filename);
-};
+var options;
+module.exports = function setOptions(newOptions) {
+  options = newOptions;
+}
+
+// Swizzle Module#_compile on each applicable module instance.
+// NOTE: if using alongside Babel or another require-hook which simply
+// over-writes the require.extensions and does not continue execution, then
+// this require hook must come after it. Encourage those module authors to call
+// the prior loader in their require hooks.
+var jsLoader = require.extensions['.js'];
+var exts = [ '.js', '.jsx', '.flow', '.es6' ];
+exts.forEach(function (ext) {
+  var superLoader = require.extensions[ext] || jsLoader;
+  require.extensions[ext] = function (module, filename) {
+    if (filename.indexOf('/node_modules/') === -1) {
+      var super_compile = module._compile;
+      module._compile = function _compile(code, filename) {
+        super_compile.call(this, asyncToGen(code, options).toString(), filename);
+      };
+    }
+    superLoader(module, filename);
+  };
+});

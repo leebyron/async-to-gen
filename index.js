@@ -22,6 +22,12 @@ var MagicString = require('magic-string');
  */
 module.exports = asyncToGen;
 function asyncToGen(source, options) {
+  // Options
+  var sourceMap = options && options.sourceMap === true;
+  var fastSkip = !(options && options.fastSkip === false);
+  var includeHelper = !(options && options.includeHelper === false);
+
+  // Create editor
   var editor = new MagicString(source);
   editor.isEdited = false;
   editor.containsAsync = false;
@@ -29,8 +35,7 @@ function asyncToGen(source, options) {
   editor.containsForAwaitOf = false;
 
   // Cheap trick for files that don't actually contain async functions
-  if (!(options && options.fastSkip === false) &&
-      source.indexOf('async') === -1) {
+  if (fastSkip && source.indexOf('async') === -1) {
     return editor;
   }
 
@@ -44,8 +49,8 @@ function asyncToGen(source, options) {
     plugins: [ '*', 'jsx', 'flow' ],
   });
 
-  ast.shouldIncludeHelper = !(options && options.includeHelper === false);
-  var sourceMap = options && options.sourceMap === true;
+  ast.shouldIncludeHelper = includeHelper;
+
 
   visit(ast, editor, asyncToGenVisitor, sourceMap);
 

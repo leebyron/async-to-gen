@@ -94,7 +94,15 @@ You can also provide options to the require hook:
 
 ```js
 // Include inline source maps for use with development tools.
-require('flow-remove-types/register')({ sourceMaps: true })
+require('async-to-gen/register')({ sourceMaps: true })
+```
+
+Use options to define exactly which files to `include` or `exclude` with regular
+expressions. All files are included by default except those found in the
+`node_modules` folder, which is excluded by default.
+
+```js
+require('async-to-gen/register')({ include: /\/custom_path\// })
 ```
 
 

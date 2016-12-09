@@ -18,7 +18,17 @@ exts.forEach(function (ext) {
     if (filename.indexOf('/node_modules/') === -1) {
       var super_compile = module._compile;
       module._compile = function _compile(code, filename) {
-        super_compile.call(this, asyncToGen(code, options).toString(), filename);
+        var sourceMaps = options && options.sourceMaps;
+        var result = asyncToGen(code, options);
+        var code = result.toString();
+        if (sourceMaps) {
+          var map = result.generateMap();
+          delete map.file;
+          delete map.sourcesContent;
+          map.sources[0] = filename;
+          code += '\n//# sourceMappingURL=' + map.toUrl();
+        }
+        super_compile.call(this, code, filename);
       };
     }
     superLoader(module, filename);

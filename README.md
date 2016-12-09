@@ -90,6 +90,13 @@ As always, don't forget to use `async-to-gen` to compile files before distributi
 your code on npm, as using the require hook affects the whole runtime and not
 just your module.
 
+You can also provide options to the require hook:
+
+```js
+// Include inline source maps for use with development tools.
+require('flow-remove-types/register')({ sourceMaps: true })
+```
+
 
 ## Use in Build Systems:
 

@@ -25,18 +25,21 @@ operating on streams of data.
 
 Use the command line:
 
-```
+```sh
 npm install --global async-to-gen
 ```
 
-```
+```sh
 async-to-gen --help
 async-to-gen input.js > output.js
+
+# source maps!
+async-to-gen input.js --sourcemaps inline > output.js
 ```
 
 Or the JavaScript API:
 
-```
+```sh
 npm install async-to-gen
 ```
 
@@ -49,8 +52,8 @@ var output = asyncToGen(input).toString();
 fs.writeFileSync('output.js', output);
 
 // source maps!
-var map = asyncToGen(input, { sourceMaps: true }).generateMap();
-fs.writeFileSync('output.js.map', output);
+var map = asyncToGen(input).generateMap();
+fs.writeFileSync('output.js.map', JSON.stringify(output));
 ```
 
 
@@ -59,7 +62,7 @@ fs.writeFileSync('output.js.map', output);
 Wherever you use `node` you can substitute `async-node` and have a super fast
 async functions aware evaluator or REPL.
 
-```
+```sh
 $ async-node
 > async function answer() {
 ... return await 42

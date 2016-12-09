@@ -30,7 +30,10 @@ var arrow2 = () =>__async(function*(){
   return yield 42}());
 
 // async function with minimal whitespace
-var arrow3=()=>return __async(function*(){yield(42)}());
+var arrow3=()=>__async(function*(){return yield(42)}());
+
+// double async functions with minimal whitespace
+var arrow3=()=>__async(function*(){return yield(()=>__async(function*(){return yield 42}()))}());
 
 // async arrow IIFE
 (() => __async(function*(){

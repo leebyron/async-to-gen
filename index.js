@@ -347,9 +347,9 @@ function leaveArrowFunction(editor, node, ast) {
       while (ast.tokens[idx].type.label !== '=>') {
         idx--;
       }
-      editor.prependRight(ast.tokens[idx].end, wrapping[0]);
-      editor.appendLeft(node.body.start, 'return ');
-      editor.prependRight(node.body.end, wrapping[1]);
+      editor.appendLeft(ast.tokens[idx].end, wrapping[0]);
+      editor.prependRight(node.body.start, 'return ');
+      editor.appendLeft(node.body.end, wrapping[1]);
     }
   }
 }

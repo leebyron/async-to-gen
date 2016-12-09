@@ -32,6 +32,9 @@ var arrow2 = async () =>
 // async function with minimal whitespace
 var arrow3=async()=>await(42);
 
+// double async functions with minimal whitespace
+var arrow3=async()=>await(async()=>await 42);
+
 // async arrow IIFE
 (async () => {
   await 42

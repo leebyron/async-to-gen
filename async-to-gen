@@ -14,6 +14,7 @@ var usage = 'Usage: async-to-gen [options] [sources] \n' +
 '  -x, --extensions  File extensions to transform\n' +
 '  -o, --out-file    The file path to write transformed file to\n' +
 '  -d, --out-dir     The directory path to write transformed files within\n' +
+'  -m, --sourcemaps  Also output source map files. Optionally pass "inline"\n' +
 
 '\nExamples:\n' +
 
@@ -25,6 +26,12 @@ var usage = 'Usage: async-to-gen [options] [sources] \n' +
 
 '\nTransform files in directory:\n' +
 '  async-to-gen --out-dir out/ indir/\n' +
+
+'\nTransform files with source maps:\n' +
+'  async-to-gen --out-dir out/ indir/ --sourcemaps\n' +
+
+'\nTransform files with inline source maps:\n' +
+'  async-to-gen --out-dir out/ indir/ --sourcemaps inline\n' +
 
 '\nTransform stdin:\n' +
 '  cat input.js | async-to-gen > output.js\n';
@@ -65,6 +72,8 @@ var ignore = /node_modules/;
 var extensions = [ '.js', '.jsx', '.flow', '.es6' ];
 var outDir;
 var outFile;
+var sourceMaps;
+var inlineSourceMaps;
 var sources = [];
 var i = 2;
 while (i < process.argv.length) {
@@ -83,6 +92,12 @@ while (i < process.argv.length) {
     outFile = process.argv[i++];
   } else if (arg === '-d' || arg === '--out-dir') {
     outDir = process.argv[i++];
+  } else if (arg === '-m' || arg === '--sourcemaps') {
+    sourceMaps = true;
+    if (process.argv[i] === 'inline') {
+      inlineSourceMaps = true;
+      i++;
+    }
   } else {
     sources.push(arg);
   }
@@ -95,6 +110,10 @@ if (outDir && outFile) {
 
 if (outDir && sources.length === 0) {
   error('Must specify files when providing --out-dir');
+}
+
+if (!outDir && !outFile && sourceMaps && !inlineSourceMaps) {
+  error('Must specify either an output path or inline source maps');
 }
 
 // Ensure all sources exist
@@ -116,12 +135,7 @@ if (sources.length === 0) {
   process.stdin.resume();
   process.stdin.on('data', function (str) { content += str; });
   process.stdin.on('end', function () {
-    var result = transformSource(content, '<stdin>');
-    if (outFile) {
-      fs.writeFileSync(outFile, result);
-    } else {
-      process.stdout.write(result);
-    }
+    transformAndOutput(content, outFile);
   });
   return;
 }
@@ -139,30 +153,60 @@ for (var i = 0; i < sources.length; i++) {
   if (stat.isDirectory()) {
     var files = fs.readdirSync(source);
     for (var j = 0; j < files.length; j++) {
-      var subSource = path.join(source, files[j]);
+      var subSource = path.resolve(source, files[j]);
       if (!ignore || !ignore.test(subSource)) {
         sources.push(subSource);
       }
     }
   } else if (stat.isFile() && extensions.indexOf(path.extname(source)) !== -1) {
-    var content = fs.readFileSync(source, 'utf8');
-    var result = transformSource(content, source);
     if (outDir) {
       outFile = path.join(outDir, isDirSource ? path.relative(sources[0], source) : source);
       mkdirp(path.dirname(outFile));
     }
-    if (outFile) {
-      fs.writeFileSync(outFile, result);
-      process.stdout.write(source + '\n \u21B3 \033[32m' + outFile + '\033[0m\n');
+    var content = fs.readFileSync(source, 'utf8');
+    transformAndOutput(content, outFile, source);
+  }
+}
+
+function transformAndOutput(content, outFile, source) {
+  var fileName = source || '<stdin>';
+  var result = transformSource(content, fileName);
+  var code = result.toString();
+
+  if (sourceMaps) {
+    var map = result.generateMap();
+    delete map.file;
+    map.sources[0] = fileName;
+
+    if (source) {
+      delete map.sourcesContent;
+      if (outFile) {
+        map.sources[0] = path.join(path.relative(path.dirname(outFile), path.dirname(source)), path.basename(source));
+      }
     } else {
-      process.stdout.write(result);
+      map.sourcesContent[0] = content;
     }
+
+    code += '\n//# sourceMappingURL=' +
+      (inlineSourceMaps ? map.toUrl() : path.basename(outFile) + '.map') + '\n';
+  }
+
+  if (outFile) {
+    fs.writeFileSync(outFile, code);
+    process.stdout.write(fileName + '\n \u21B3 \033[32m' + outFile + '\033[0m\n');
+    if (sourceMaps && !inlineSourceMaps) {
+      var mapOutFile = outFile + '.map';
+      fs.writeFileSync(mapOutFile, JSON.stringify(map));
+      process.stdout.write('\033[2m \u21B3 \033[32m' + mapOutFile + '\033[0m\n');
+    }
+  } else {
+    process.stdout.write(code);
   }
 }
 
 function transformSource(content, filepath) {
   try {
-    return asyncToGen(content).toString();
+    return asyncToGen(content);
   } catch (error) {
     if (error.loc) {
       var line = error.loc.line - 1;

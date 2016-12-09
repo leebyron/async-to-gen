@@ -14,8 +14,6 @@ var MagicString = require('magic-string');
  *
  * Options:
  *
- *   - sourceMap: (default: false) collects data to produce a correct source map.
- *                 provide true if you plan on calling generateMap().
  *   - fastSkip: (default: true) returns the source directly if it doesn't find
  *               the word "async" in the source.
  *   - includeHelper: (default: true) includes the __async function in the file.
@@ -23,7 +21,6 @@ var MagicString = require('magic-string');
 module.exports = asyncToGen;
 function asyncToGen(source, options) {
   // Options
-  var sourceMap = options && options.sourceMap === true;
   var fastSkip = !(options && options.fastSkip === false);
   var includeHelper = !(options && options.includeHelper === false);
 
@@ -52,7 +49,7 @@ function asyncToGen(source, options) {
   ast.shouldIncludeHelper = includeHelper;
 
 
-  visit(ast, editor, asyncToGenVisitor, sourceMap);
+  visit(ast, editor, asyncToGenVisitor);
 
   editor.isEdited = Boolean(
     ast.containsAsync ||
@@ -517,7 +514,7 @@ function currentScope(ast) {
 
 // Given the AST output of babylon parse, walk through in a depth-first order,
 // calling methods on the given visitor, providing editor as the first argument.
-function visit(ast, editor, visitor, sourceMap) {
+function visit(ast, editor, visitor) {
   var stack;
   var parent = ast;
   var keys = ['program'];
@@ -543,10 +540,6 @@ function visit(ast, editor, visitor, sourceMap) {
         keys = Object.keys(node);
         index = -1;
         if (node.type) {
-          if (sourceMap) {
-            editor.addSourcemapLocation(node.start);
-            editor.addSourcemapLocation(node.end);
-          }
           var visitFn = visitor[node.type] && visitor[node.type].enter;
           visitFn && visitFn(editor, node, ast, stack);
         }

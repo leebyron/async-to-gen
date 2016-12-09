@@ -25,7 +25,8 @@
     "index.js",
     "register.js",
     "async-to-gen",
-    "async-node"
+    "async-node",
+    "LICENSE"
   ],
   "keywords": [
     "async",

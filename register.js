@@ -44,5 +44,5 @@ exts.forEach(function (ext) {
 function shouldTransform(filename, options) {
   var includes = options && options.includes;
   var excludes = options && 'excludes' in options ? options.excludes : /\/node_modules\//;
-  return (!includes || include.test(filename)) && !(excludes && excludes.test(filename));
+  return (!includes || includes.test(filename)) && !(excludes && excludes.test(filename));
 }

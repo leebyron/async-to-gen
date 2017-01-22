@@ -102,7 +102,7 @@ expressions. All files are included by default except those found in the
 `node_modules` folder, which is excluded by default.
 
 ```js
-require('async-to-gen/register')({ include: /\/custom_path\// })
+require('async-to-gen/register')({ includes: /\/custom_path\// })
 ```
 
 

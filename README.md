@@ -97,12 +97,12 @@ You can also provide options to the require hook:
 require('async-to-gen/register')({ sourceMaps: true })
 ```
 
-Use options to define exactly which files to `include` or `exclude` with regular
+Use options to define exactly which files to `includes` or `excludes` with regular
 expressions. All files are included by default except those found in the
 `node_modules` folder, which is excluded by default.
 
 ```js
-require('async-to-gen/register')({ include: /\/custom_path\// })
+require('async-to-gen/register')({ includes: /\/custom_path\// })
 ```
 
 

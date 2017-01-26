@@ -42,8 +42,8 @@ exts.forEach(function (ext) {
 });
 
 function shouldTransform(filename, options) {
-  var includes = options.includes || "";
-  var excludes = options.excludes || "node_modules/";
+  var includes = (options || {})['includes'] || "";
+  var excludes = (options || {})['excludes'] || "node_modules/";
   if (includes.constructor == String) includes = new RegExp(includes[0] == '/' ? includes : '/' + includes);
   if (excludes.constructor == String) excludes = new RegExp(excludes[0] == '/' ? excludes : '/' + excludes);
   return (!includes || includes.test(filename)) || !(excludes && excludes.test(filename));

@@ -86,10 +86,6 @@ require('async-to-gen/register')
 require('./some-module-with-async-functions')
 ```
 
-As always, don't forget to use `async-to-gen` to compile files before distributing
-your code on npm, as using the require hook affects the whole runtime and not
-just your module.
-
 You can also provide options to the require hook:
 
 ```js
@@ -99,11 +95,17 @@ require('async-to-gen/register')({ sourceMaps: true })
 
 Use options to define exactly which files to `includes` or `excludes` with regular
 expressions. All files are included by default except those found in the
-`node_modules` folder, which is excluded by default.
+`node_modules` folder, which is excluded by default. Pass `excludes: null` to not
+exclude any files.
 
 ```js
 require('async-to-gen/register')({ includes: /\/custom_path\// })
 ```
+
+> #### Don't use the require hook in packages distributed on NPM
+> As always, don't forget to use `async-to-gen` to compile files before distributing
+> your code on npm, as using the require hook affects the whole runtime and not
+> just your module and may hurt the runtime performance of code that includes it.
 
 
 ## Use in Build Systems:

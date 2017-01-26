@@ -15,6 +15,7 @@ var usage = 'Usage: async-to-gen [options] [sources] \n' +
 '  -o, --out-file    The file path to write transformed file to\n' +
 '  -d, --out-dir     The directory path to write transformed files within\n' +
 '  -m, --sourcemaps  Also output source map files. Optionally pass "inline"\n' +
+'  -q, --quiet       Does not produce any output concerning successful progress.\n' +
 
 '\nExamples:\n' +
 
@@ -35,11 +36,6 @@ var usage = 'Usage: async-to-gen [options] [sources] \n' +
 
 '\nTransform stdin:\n' +
 '  cat input.js | async-to-gen > output.js\n';
-
-function error(msg) {
-  process.stderr.write('\n\033[31m  ' + msg + '\033[0m\n\n');
-  process.exit(1);
-}
 
 var _memo = {};
 
@@ -75,6 +71,7 @@ var outFile;
 var sourceMaps;
 var inlineSourceMaps;
 var sources = [];
+var quiet;
 var i = 2;
 while (i < process.argv.length) {
   var arg = process.argv[i++];
@@ -98,9 +95,22 @@ while (i < process.argv.length) {
       inlineSourceMaps = true;
       i++;
     }
+  } else if (arg === '-q' || arg === '--quiet') {
+    quiet = true;
   } else {
     sources.push(arg);
   }
+}
+
+function info(msg) {
+  if (!quiet) {
+    process.stderr.write(msg);
+  }
+}
+
+function error(msg) {
+  process.stderr.write('\n\033[31m  ' + msg + '\033[0m\n\n');
+  process.exit(1);
 }
 
 // Validate arguments
@@ -193,11 +203,11 @@ function transformAndOutput(content, outFile, source) {
 
   if (outFile) {
     fs.writeFileSync(outFile, code);
-    process.stdout.write(fileName + '\n \u21B3 \033[32m' + outFile + '\033[0m\n');
+    info(fileName + '\n \u21B3 \033[32m' + outFile + '\033[0m\n');
     if (sourceMaps && !inlineSourceMaps) {
       var mapOutFile = outFile + '.map';
       fs.writeFileSync(mapOutFile, JSON.stringify(map) + '\n');
-      process.stdout.write('\033[2m \u21B3 \033[32m' + mapOutFile + '\033[0m\n');
+      info('\033[2m \u21B3 \033[32m' + mapOutFile + '\033[0m\n');
     }
   } else {
     process.stdout.write(code);

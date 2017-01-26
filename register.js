@@ -2,7 +2,7 @@ var asyncToGen = require('./index');
 
 // Supported options:
 //
-//   - sourceMaps: Include inline source maps. (default: false)
+//   - sourceMaps: Include inline source maps. (default: true)
 //   - includes: A Regexp/String to determine which files should be transformed.
 //               (alias: include)
 //   - excludes: A Regexp/String to determine which files should not be
@@ -26,7 +26,7 @@ exts.forEach(function (ext) {
     if (shouldTransform(filename, options)) {
       var super_compile = module._compile;
       module._compile = function _compile(code, filename) {
-        var sourceMaps = options && options.sourceMaps;
+        var sourceMaps = options && 'sourceMaps' in options ? options.sourceMaps : true;
         var result = asyncToGen(code, options);
         var code = result.toString();
         if (sourceMaps) {

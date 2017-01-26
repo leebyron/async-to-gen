@@ -89,8 +89,8 @@ require('./some-module-with-async-functions')
 You can also provide options to the require hook:
 
 ```js
-// Include inline source maps for use with development tools.
-require('async-to-gen/register')({ sourceMaps: true })
+// Disable inline source maps for use with development tools.
+require('async-to-gen/register')({ sourceMaps: false })
 ```
 
 Use options to define exactly which files to `includes` or `excludes` with regular

@@ -4,8 +4,10 @@ var asyncToGen = require('./index');
 //
 //   - sourceMaps: Include inline source maps. (default: false)
 //   - includes: A Regexp to determine which files should be transformed.
+//               (alias: include)
 //   - excludes: A Regexp to determine which files should not be transformed,
-//               defaults to ignoring /node_modules/, set to null to excludes nothing.
+//               defaults to ignoring /node_modules/, set to null to excludes
+//               nothing. (alias: exclude)
 var options;
 module.exports = function setOptions(newOptions) {
   options = newOptions;
@@ -42,7 +44,10 @@ exts.forEach(function (ext) {
 });
 
 function shouldTransform(filename, options) {
-  var includes = options && options.includes;
-  var excludes = options && 'excludes' in options ? options.excludes : /\/node_modules\//;
+  var includes = options && (options.includes || options.include);
+  var excludes =
+    options && 'excludes' in options ? options.excludes :
+    options && 'exclude' in options ? options.exclude :
+    /\/node_modules\//;
   return (!includes || includes.test(filename)) && !(excludes && excludes.test(filename));
 }

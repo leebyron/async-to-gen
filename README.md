@@ -186,7 +186,9 @@ Writing tests in Jest? Use the [scriptPreprocessor](http://facebook.github.io/je
 {
   "name": "my-project",
   "jest": {
-    "scriptPreprocessor": "async-to-gen"
+    "transform": {
+      "^.+\\.js$": "async-to-gen"
+    }
   },
   "devDependencies": {
     "async-to-gen": "*"

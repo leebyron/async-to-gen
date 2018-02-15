@@ -102,6 +102,17 @@ exclude any files.
 require('async-to-gen/register')({ includes: /\/custom_path\// })
 ```
 
+The require hook also offers the ability to set options and revert the require
+hook:
+
+```js
+const asyncHook = require('async-to-gen/register')
+// Similar to example above.
+asyncHook.setOptions({ includes: /\/custom_path\// })
+// Reverts the require hook.
+asyncHook.revert()
+```
+
 > #### Don't use the require hook in packages distributed on NPM
 > As always, don't forget to use `async-to-gen` to compile files before distributing
 > your code on npm, as using the require hook affects the whole runtime and not

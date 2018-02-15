@@ -1,4 +1,12 @@
 var asyncToGen = require('./index');
+var pirates = require('pirates');
+
+// Export this function as the primary export.
+var exports = module.exports = setOptions;
+// Treat the exported object as "exports" and supply this function.
+exports.setOptions = setOptions;
+// Revert will exist on the exports after the transform hook has been added.
+exports.revert = void 0;
 
 // Supported options:
 //
@@ -9,41 +17,32 @@ var asyncToGen = require('./index');
 //               transformed, defaults to ignoring /node_modules/, provide null
 //               to exclude nothing. (alias: exclude)
 var options;
-module.exports = function setOptions(newOptions) {
+function setOptions(newOptions) {
   options = newOptions;
+  return exports;
 }
 
-// Swizzle Module#_compile on each applicable module instance.
-// NOTE: if using alongside Babel or another require-hook which simply
-// over-writes the require.extensions and does not continue execution, then
-// this require hook must come after it. Encourage those module authors to call
-// the prior loader in their require hooks.
-var jsLoader = require.extensions['.js'];
 var exts = [ '.js', '.mjs', '.jsx', '.flow', '.es6' ];
-exts.forEach(function (ext) {
-  var superLoader = require.extensions[ext] || jsLoader;
-  require.extensions[ext] = function (module, filename) {
-    if (shouldTransform(filename, options)) {
-      var super_compile = module._compile;
-      module._compile = function _compile(code, filename) {
-        var sourceMaps = options && 'sourceMaps' in options ? options.sourceMaps : true;
-        var result = asyncToGen(code, options);
-        var code = result.toString();
-        if (sourceMaps) {
-          var map = result.generateMap();
-          delete map.file;
-          delete map.sourcesContent;
-          map.sources[0] = filename;
-          code += '\n//# sourceMappingURL=' + map.toUrl();
-        }
-        super_compile.call(this, code, filename);
-      };
-    }
-    superLoader(module, filename);
-  };
-});
 
-function shouldTransform(filename, options) {
+// Use pirates to swizzle Module#_compile in a way that's compatible with
+// other tools, saving the revert on the exports.
+exports.revert = pirates.addHook(transform, { exts: exts, matcher: matcher });
+
+function transform(code, filename) {
+  var sourceMaps = options && 'sourceMaps' in options ? options.sourceMaps : true;
+  var result = asyncToGen(code, options);
+  var transformedCode = result.toString();
+  if (sourceMaps) {
+    var map = result.generateMap();
+    delete map.file;
+    delete map.sourcesContent;
+    map.sources[0] = filename;
+    transformedCode += '\n//# sourceMappingURL=' + map.toUrl();
+  }
+  return transformedCode;
+}
+
+function matcher(filename) {
   var includes = options && regexpPattern(options.includes || options.include);
   var excludes =
     options && 'excludes' in options ? regexpPattern(options.excludes) :

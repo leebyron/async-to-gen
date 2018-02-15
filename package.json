@@ -42,6 +42,7 @@
   ],
   "dependencies": {
     "babylon": "^6.14.0",
-    "magic-string": "^0.22.0"
+    "magic-string": "^0.22.0",
+    "pirates": "^3.0.2"
   }
 }

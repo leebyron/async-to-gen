@@ -240,6 +240,15 @@ function reduceStream(stream, reducer, initial) {return __async(function*(){
 // doesn't break for holey destructuring (#22)
 const [,holey] = [1,2,3]
 
+// support arrow functions returning parentheic expressions (#49)
+const arrowOfParentheic = () =>__async(function*(){ return (12345)}())
+const arrowOfNestedDoubleParentheic = (() =>__async(function*(){ return ((12345))}()))
+const arrowOfSequence = () =>__async(function*(){ return (12345, 67890)}())
+const arrowOfObj1 = () =>__async(function*(){ return ({})}())
+const arrowOfObj2 = () =>__async(function*(){ return ({
+  key: yield x
+})}())
+
 function __async(g){return new Promise(function(s,j){function c(a,x){try{var r=g[x?"throw":"next"](a)}catch(e){j(e);return}r.done?s(r.value):Promise.resolve(r.value).then(c,d)}function d(e){c(e,1)}c()})}
 
 function __asyncGen(g){var q=[],T=["next","throw","return"],I={};for(var i=0;i<3;i++){I[T[i]]=a.bind(0,i)}I[Symbol?Symbol.asyncIterator||(Symbol.asyncIterator=Symbol()):"@@asyncIterator"]=function (){return this};function a(t,v){return new Promise(function(s,j){q.push([s,j,v,t]);q.length===1&&c(v,t)})}function c(v,t){try{var r=g[T[t|0]](v),w=r.value&&r.value.__await;w?Promise.resolve(w).then(c,d):n(r,0)}catch(e){n(e,1)}}function d(e){c(e,1)}function n(r,s){q.shift()[s](r);q.length&&c(q[0][2],q[0][3])}return I}

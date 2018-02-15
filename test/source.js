@@ -239,3 +239,12 @@ async function reduceStream(stream, reducer, initial) {
 
 // doesn't break for holey destructuring (#22)
 const [,holey] = [1,2,3]
+
+// support arrow functions returning parentheic expressions (#49)
+const arrowOfParentheic = async () => (12345)
+const arrowOfNestedDoubleParentheic = (async () => ((12345)))
+const arrowOfSequence = async () => (12345, 67890)
+const arrowOfObj1 = async () => ({})
+const arrowOfObj2 = async () => ({
+  key: await x
+})

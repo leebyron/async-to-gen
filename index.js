@@ -347,9 +347,12 @@ function leaveArrowFunction(editor, node, ast) {
       while (ast.tokens[idx].type.label !== '=>') {
         idx--;
       }
+      var nodeStart = node.body.extra && node.body.extra.parenthesized
+        ? node.body.extra.parenStart
+        : node.body.start;
       editor.appendLeft(ast.tokens[idx].end, wrapping[0]);
-      editor.prependRight(node.body.start, 'return ');
-      editor.appendLeft(node.body.end, wrapping[1]);
+      editor.prependRight(nodeStart, 'return ');
+      editor.appendLeft(node.end, wrapping[1]);
     }
   }
 }
